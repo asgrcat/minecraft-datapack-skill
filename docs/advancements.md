@@ -61,7 +61,7 @@ advancementの進行状況はplayerごとに保存されます。定義された
 - requirements内の名前はcriteria keyと完全一致させる
 - 同じcriterionを重複させて条件式を表現しない
 - 複雑なboolean条件はpredicateへ分離する
-- triggerの `conditions` schemaは版ごとに確認する
+- triggerの `conditions` schemaはバージョンごとに確認する
 
 ## trigger
 
@@ -77,9 +77,9 @@ advancementの進行状況はplayerごとに保存されます。定義された
 | interaction | `minecraft:player_interacted_with_entity`, `minecraft:villager_trade` |
 | packから手動制御 | `minecraft:impossible` |
 
-この表を全trigger一覧として使わないでください。追加・rename・conditions統合があります。対象版のvanilla advancement、release note、server JARのvanilla dataを正本にします。
+この表を全trigger一覧として使わないでください。追加・rename・conditions統合があります。対象バージョンのvanilla advancement、release note、server JARのvanilla dataを正本にします。
 
-triggerはevent駆動のため、毎tick全playerのinventoryや周辺entityを走査するより効率的な場合があります。ただし、条件に使うitem stack、entity predicate、location predicateは版境界の影響を受けます。
+triggerはevent駆動のため、毎tick全playerのinventoryや周辺entityを走査するより効率的な場合があります。ただし、条件に使うitem stack、entity predicate、location predicateはバージョン境界の影響を受けます。
 
 ## rewards
 
@@ -111,7 +111,7 @@ scoreboard players add @s example.level 1
 tellraw @s {"text":"Level up"}
 ```
 
-実行位置・dimensionもplayer依存の処理で使われますが、版や呼出経路に依存する仮定を減らすため、block/entity操作は必要に応じて `execute at @s` を明示します。
+実行位置・dimensionもplayer依存の処理で使われますが、バージョンや呼出経路に依存する仮定を減らすため、block/entity操作は必要に応じて `execute at @s` を明示します。
 
 rewardは完了への遷移に伴うeffectです。revocationは配布済みexperience、loot、recipeやfunctionの副作用を巻き戻しません。
 
@@ -138,7 +138,7 @@ advancement revoke @s only example:story/root criterion_name
 
 parent graphの広い `from`/`through` や `everything` は、vanillaや他packまで対象にし得ます。通常の実装では自namespaceの `only` を優先します。
 
-`grant`/`revoke`のresultが「変更したadvancement数」「player数」など何を表すかは版で修正されています。26.2にもresult/reportの変更があるため、制御値に使う場合は対象版で確認します。
+`grant`/`revoke`のresultが「変更したadvancement数」「player数」など何を表すかはバージョンで修正されています。26.2にもresult/reportの変更があるため、制御値に使う場合は対象バージョンで確認します。
 
 ## 表示用と内部用を分ける
 
@@ -255,7 +255,7 @@ execute as @a[advancements={example:quest/root={stage_1=true}}] run function exa
 - 1.21.6以降: JSON codecの厳格化を継続
 - 26.2: entity predicateをcomponent-map化しunknown keyを拒否
 
-同じtrigger名でもconditions内部が変わるため、最新版の例を古い版へ流用しません。
+同じtrigger名でもconditions内部が変わるため、最新バージョンの例を古いバージョンへ流用しません。
 
 ## test
 

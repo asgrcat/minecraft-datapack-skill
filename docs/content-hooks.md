@@ -1,8 +1,8 @@
 # 追加コンテンツとデータパック活用
 
-この文書は、正式版で追加された主要なblock・entity・item・gameplay systemを、データパックから観測・制御する入口へ結び付けます。全registry IDの複製ではなく、「その要素を使って何を作れるか」を探すための索引です。
+この文書は、正式リリースで追加された主要なblock・entity・item・gameplay systemを、データパックから観測・制御する入口へ結び付けます。全registry IDの複製ではなく、「その要素を使って何を作れるか」を探すための索引です。
 
-対象版を決めてから [`versions/README.md`](versions/README.md) の版プロファイルを適用してください。完全なID、block state、entity data/component、tagは対象版server JARのreportを正本とします。
+対象バージョンを決めてから [`versions/README.md`](versions/README.md) のバージョンプロファイルを適用してください。完全なID、block state、entity data/component、tagは対象バージョンのserver JARのreportを正本とします。
 
 ## 読み方
 
@@ -61,11 +61,11 @@ entityのAI goalを任意に追加することは、通常のデータパック�
 - 左クリック・右クリックの全状況を汎用eventとして直接受け取れるわけではない
 - 対応trigger、usable item、consumable/equippable component、interaction entity等を組み合わせる
 
-## 正式版ごとの主要な着眼点
+## 正式リリースごとの主要な着眼点
 
-patch/hotfixだけの版は省略し、gameplay追加の大きい正式版を示します。各行は完全な追加一覧ではありません。
+patch/hotfixだけのバージョンは省略し、gameplay追加の大きい正式リリースを示します。各行は完全な追加一覧ではありません。
 
-| 正式版 | 主要要素 | データパックでの着眼点 |
+| 正式リリース | 主要要素 | データパックでの着眼点 |
 |---|---|---|
 | [1.13](versions/1.13.md) | 水生mob、Drowned、Phantom、Turtle、Trident、Conduit、coral、kelp、bubble column | 水中arena、trident challenge、turtle保護、conduit領域、bubble elevator判定 |
 | [1.14](versions/1.14.md) | Pillager、Ravager、Raid、Fox、Panda、Wandering Trader、village job blocks、Campfire、Scaffolding | raid進行、村人profession、取引・職業quest、campfire料理、scaffolding parkour |
@@ -110,7 +110,7 @@ Sculk Sensorの全振動をデータパックが汎用callbackとして直接受
 - Decorated Potを納品先・展示物・loot containerとして利用
 - structure/worldgenで発掘siteを配置
 
-実装時はblock lootとarchaeology lootのcontextを混同せず、対象版vanilla JSONから同型を選びます。
+実装時はblock lootとarchaeology lootのcontextを混同せず、対象バージョンのvanilla JSONから同型を選びます。
 
 ### 1.21: Repeatable trial dungeon
 
@@ -122,7 +122,7 @@ Sculk Sensorの全振動をデータパックが汎用callbackとして直接受
 - Mace/Wind Charge/Breezeをmovement・combat条件へ使う
 - GameTestでwave終了、reward、resetを検証
 
-block entity NBTを直接書き換える実装より、対象版で公開されたdata-driven registry/configurationを優先します。
+block entity NBTを直接書き換える実装より、対象バージョンで公開されたdata-driven registry/configurationを優先します。
 
 ### 1.21.6: Dried Ghast育成
 
@@ -152,7 +152,7 @@ Copper GolemはCopper Chestからitemを取り、周辺のChestへ分類する�
 
 Golemの探索順や最後に選ぶChestへ依存する論理は避けます。厳密な配送が必要なら、storage queueとcommand処理を正本にし、Golemは演出・入力役にします。
 
-同版のtechnical entity `minecraft:mannequin` は、player avatarとしてequipment、attribute、effect、damage、pose、profile、descriptionを扱えます。quest NPC、combat dummy、装備展示に向きます。commandでのみspawnされるentityであり、本物のplayerや自由な会話AIとして扱わず、dialog・interaction entity・advancement等を別途接続します。
+同バージョンのtechnical entity `minecraft:mannequin` は、player avatarとしてequipment、attribute、effect、damage、pose、profile、descriptionを扱えます。quest NPC、combat dummy、装備展示に向きます。commandでのみspawnされるentityであり、本物のplayerや自由な会話AIとして扱わず、dialog・interaction entity・advancement等を別途接続します。
 
 ### 1.21.11: 騎乗combat
 
@@ -193,7 +193,7 @@ unknown entity predicate keyを拒否する26.2の厳格化を適用し、26.1.x
 
 ## コンテンツカード
 
-今後、版プロファイルへgameplay要素を追記するときは、次の形式を使います。
+今後、バージョンプロファイルへgameplay要素を追記するときは、次の形式を使います。
 
 ```markdown
 ### minecraft:example
@@ -220,7 +220,7 @@ unknown entity predicate keyを拒否する26.2の厳格化を適用し、26.1.x
 
 ## 完全なID一覧を生成する
 
-Markdownへ全block/entity IDを固定コピーせず、対象版JARから生成します。
+Markdownへ全block/entity IDを固定コピーせず、対象バージョンのJARから生成します。
 
 確認する主なreport:
 
@@ -233,7 +233,7 @@ generated/data/minecraft/loot_table/
 generated/data/minecraft/advancement/
 ```
 
-古い版では出力名・複数形directoryが異なる場合があります。
+古いバージョンでは出力名・複数形directoryが異なる場合があります。
 
 差分抽出の考え方:
 
@@ -262,7 +262,7 @@ ID追加だけでは、AI、drop、interaction、block state、tag membershipの
 ## 企画時の確認項目
 
 ```text
-[ ] 対象版で要素IDが存在する
+[ ] 対象バージョンで要素IDが存在する
 [ ] block state/entity componentをreportで確認した
 [ ] event検知がtick pollingだけになっていない
 [ ] vanilla AIの選択順・乱数へ重要状態を依存させていない

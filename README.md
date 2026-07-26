@@ -1,6 +1,6 @@
 # Minecraft Java Edition Data Pack Harness
 
-Minecraft Java Editionの正式版を完全一致で解決し、AIによるデータパック実装と検証をバージョンごとに再現可能にする共通ハーネスです。
+Minecraft Java Editionの正式リリースを完全一致で解決し、AIによるデータパック実装と検証をバージョンごとに再現可能にする共通ハーネスです。
 
 仕様の入口は [`docs/README.md`](docs/README.md)、AI生成契約は [`docs/ai-authoring.md`](docs/ai-authoring.md) です。
 
@@ -9,7 +9,7 @@ Minecraft Java Editionの正式版を完全一致で解決し、AIによるデ�
 - 文書の参照とtemplateのcopyにはPythonやJavaは不要
 - 付属CLIを実行する場合だけPython 3.10以降が必要。`profiles`、`resolve`、`project-check`、基本的な静的検査はPython標準ライブラリだけで動作
 - `fetch`、`reports` は公式Minecraft server JARのdownloadを明示実行する場合だけnetworkを使用
-- `reports` と `server-test` のJava majorは対象版により異なる
+- `reports` と `server-test` のJava majorは対象バージョンにより異なる
 - `server-test` は利用者が `--accept-eula` を指定しない限り起動しない
 
 導入確認だけではJARをdownloadせず、JavaやMinecraft serverも起動しません。
@@ -79,7 +79,7 @@ git subtree add \
 
 Git連携を持たせない場合は、同一tagまたはfull commitのarchiveから配布単位をまとめてcopyします。`LICENSE`を削除せず、取得元のtag/full commitを導入記録に残します。
 
-公開release/tagがないrevisionはfull commit SHAで固定します。移動するbranch名だけで導入版を記録しません。
+公開release/tagがないrevisionはfull commit SHAで固定します。移動するbranch名だけで導入バージョンを記録しません。
 
 ## 初期設定
 
@@ -98,7 +98,7 @@ project設定の必須fieldは `schema_version`、`target_version`、`namespace`
 | `cache_dir` | `.cache/minecraft` |
 | `report_dir` | `build/minecraft/<target_version>/generated` |
 
-導入済みハーネスの版は `<harness-root>/VERSION` で確認します。submoduleは利用者repositoryのgitlink、subtreeは取り込んだ履歴、archive/copyは取得記録でrevisionを固定します。archive情報等をproject fileにも残したい場合だけ、`harness.version`、`harness.source`、`harness.commit` を任意で追加できます。
+導入済みハーネスのバージョンは `<harness-root>/VERSION` で確認します。submoduleは利用者repositoryのgitlink、subtreeは取り込んだ履歴、archive/copyは取得記録でrevisionを固定します。archive情報等をproject fileにも残したい場合だけ、`harness.version`、`harness.source`、`harness.commit` を任意で追加できます。
 
 health check:
 
@@ -132,9 +132,9 @@ python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
 
 | level | 必要な証拠 | 主張できること |
 |---|---|---|
-| `generated` | profile解決とfile生成 | 対象版向けに生成した |
+| `generated` | profile解決とfile生成 | 対象バージョン向けに生成した |
 | `static` | `validate-project` 成功 | ハーネスの静的検査に成功した |
-| `server` | exact serverでenabled/reload成功 | 対象版serverで読み込めた |
+| `server` | exact serverでenabled/reload成功 | 対象バージョンのserverで読み込めた |
 | `functional` | 機能test成功 | 記録した機能testに成功した |
 
 `static` で完了するprojectは正常な利用形態です。`server` と `functional` は利用者が必要性、EULA、本番影響を判断して明示実行します。

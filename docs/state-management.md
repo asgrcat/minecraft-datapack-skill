@@ -1,6 +1,6 @@
 # 状態管理
 
-この文書は、scoreboard、command storage、entity tag、advancementを状態として使い分け、reload・再起動・更新に耐える設計を扱います。構文の版境界は [`commands.md`](commands.md)、進捗固有の挙動は [`advancements.md`](advancements.md) を参照してください。
+この文書は、scoreboard、command storage、entity tag、advancementを状態として使い分け、reload・再起動・更新に耐える設計を扱います。構文のバージョン境界は [`commands.md`](commands.md)、進捗固有の挙動は [`advancements.md`](advancements.md) を参照してください。
 
 ## 状態の選択
 
@@ -10,7 +10,7 @@
 | storage | 任意のSNBT | world全体のnamespaced ID | 設定、queue、構造化状態、macro引数 | selectorから直接検索できない |
 | entity tag | 文字列集合 | entity/player | 一時的な分類、selector絞り込み | 値や構造を持てない |
 | advancement | criteriaの真偽 | player | event検出、達成状態、報酬 | player以外に使えずtrigger依存 |
-| entity/item component・NBT | 対象固有 | entity/item/block entity | 対象自身へ属する状態 | 版差分が大きくplayer NBTは直接変更不可 |
+| entity/item component・NBT | 対象固有 | entity/item/block entity | 対象自身へ属する状態 | バージョン差分が大きくplayer NBTは直接変更不可 |
 
 選択の基準:
 
@@ -55,7 +55,7 @@ scoreboard players operation #out example.tmp >< #other example.tmp
 | `<`, `>` | 小さい方／大きい方を代入 |
 | `><` | swap |
 
-除算・剰余の負数、0除算、32-bit境界を利用する設計は対象版でtestします。command失敗時に処理全体がrollbackされることはありません。
+除算・剰余の負数、0除算、32-bit境界を利用する設計は対象バージョンでtestします。command失敗時に処理全体がrollbackされることはありません。
 
 ### player単位の状態
 
@@ -129,7 +129,7 @@ data remove storage example:state queue[0]
 - `remove`: pathに一致する値を削除
 - `from`: entity/block/storageの既存値をcopy
 - `value`: commandに書いたSNBTを使用
-- `string`: source stringのsubstringを使用できる版がある
+- `string`: source stringのsubstringを使用できるバージョンがある
 
 型不一致やsource path欠損はruntime failureです。複数の変更を1command transactionとして扱う仕組みはないため、途中失敗しても先行変更は残ります。
 

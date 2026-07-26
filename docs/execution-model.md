@@ -1,8 +1,8 @@
 # コマンド実行モデル
 
-この文書は、構文が正しいコマンドが「誰として、どこで、何回、どの順で」実行されるかを扱います。個々のコマンド構文は [`commands.md`](commands.md)、版境界は [`versions/README.md`](versions/README.md) を先に確認してください。
+この文書は、構文が正しいコマンドが「誰として、どこで、何回、どの順で」実行されるかを扱います。個々のコマンド構文は [`commands.md`](commands.md)、バージョン境界は [`versions/README.md`](versions/README.md) を先に確認してください。
 
-例は特記がなければ Java Edition 1.21.5〜26.2 の単数形ディレクトリを想定します。古い版へ移植するときは対象版プロファイルを適用します。
+例は特記がなければ Java Edition 1.21.5〜26.2 の単数形ディレクトリを想定します。古いバージョンへ移植するときは対象バージョンプロファイルを適用します。
 
 ## 実行コンテキスト
 
@@ -30,7 +30,7 @@ execute as @a at @s positioned ~ ~1 ~ run particle minecraft:happy_villager ~ ~ 
 - `as <targets>` はexecutorだけを変え、位置を変えない
 - `at <targets>` は位置・回転・dimensionを対象へ合わせるが、executorを変えない
 - playerごとの位置で処理する定型は `execute as @a at @s run ...`
-- `positioned as` は位置をentityへ合わせるが、`at`と同一ではない。必要なrotation/dimensionも対象版のcommand treeで確認する
+- `positioned as` は位置をentityへ合わせるが、`at`と同一ではない。必要なrotation/dimensionも対象バージョンのcommand treeで確認する
 - `anchored eyes` は以後のlocal座標やfacingの基準を変える。独立した次のfunction行へ変更を持ち越さない
 
 ## 分岐と実行回数
@@ -88,10 +88,10 @@ $data modify storage example:state current set value $(value)
 
 ## `return` とfunction結果
 
-版境界:
+バージョン境界:
 
 - 1.20: `return <value>`
-- 1.20.2: 正式版では `return run` と `execute if function` を利用不可
+- 1.20.2: 正式リリースでは `return run` と `execute if function` を利用不可
 - 1.20.3: `return run`, `return fail`, `execute if|unless function` を再導入し、function resultを変更
 
 ```mcfunction
@@ -107,7 +107,7 @@ execute store result score #result example.tmp run function example:check
 
 1.20.3以降、通常のfunctionは明示的にreturnしなければresultを返しません。`execute store ... run function` がfunction内の各command結果を順次保存する旧挙動を前提にしないでください。
 
-`return run <command>` はcommandのsuccess/resultと、対象が0件になる分岐の扱いが1.20.3開発中に調整されています。1.20.3以降でも対象正式版のプロファイルと実ゲームtestを優先します。
+`return run <command>` はcommandのsuccess/resultと、対象が0件になる分岐の扱いが1.20.3開発中に調整されています。1.20.3以降でも対象正式リリースのプロファイルと実ゲームtestを優先します。
 
 ## load、tick、schedule
 
@@ -132,7 +132,7 @@ objectiveが既に存在すると `scoreboard objectives add` は失敗します
 - 実時間ではなくgame tick基準の処理に使う
 - 全entity走査を入口に置かず、tag/score/predicateで対象を絞る
 - 低頻度処理はscore counterまたはscheduleへ分離する
-- loadで作るobjectiveやstorageがtickより先に必要なら、対象版でload/tick順を検証する
+- loadで作るobjectiveやstorageがtickより先に必要なら、対象バージョンでload/tick順を検証する
 
 ### schedule
 
@@ -149,7 +149,7 @@ execute in minecraft:overworld positioned 0 64 0 run function example:task/body
 ```
 
 - `replace` は同じfunction IDの既存予定を置換する
-- `append` は同じIDの予定を追加できる版で使う
+- `append` は同じIDの予定を追加できるバージョンで使う
 - scheduleはworldの時刻queueに保存されるが、pack更新でfunction IDを消すと期限時に解決できない
 - exact tick、同時刻順、再起動後の動作が要件なら、空worldで再起動を含めてtestする
 - entity単位の大量timerは、1件ずつscheduleするよりscoreboardでまとめて減算する方が管理しやすい
@@ -171,7 +171,7 @@ execute store result score #value example.tmp run data get storage example:state
 
 successとresultは交換可能ではありません。`data get`、`clear`、`advancement`、複数対象commandなどが返すresultの意味は個別に確認します。
 
-`execute store result storage <id> <path> <type> <scale>` では、resultへscaleを掛けて指定NBT数値型へ変換します。境界値、負数、小数、overflowへ依存する場合は、対象版で期待値をassertしてください。
+`execute store result storage <id> <path> <type> <scale>` では、resultへscaleを掛けて指定NBT数値型へ変換します。境界値、負数、小数、overflowへ依存する場合は、対象バージョンで期待値をassertしてください。
 
 ## 権限、chunk、world状態
 

@@ -1,6 +1,6 @@
 # `.mcfunction` とコマンド仕様
 
-この文書は Java Edition のデータパックから実行するコマンドを扱います。コマンドの全分岐は版ごとに変化するため、最終的な正本は対象版 server JAR が生成する `generated/reports/commands.json` です。生成方法は [`validation.md`](validation.md) を参照してください。
+この文書は Java Edition のデータパックから実行するコマンドを扱います。コマンドの全分岐はバージョンごとに変化するため、最終的な正本は対象バージョン server JAR が生成する `generated/reports/commands.json` です。生成方法は [`validation.md`](validation.md) を参照してください。
 
 executor、位置、分岐、function結果、load/tick/scheduleの実行意味は [`execution-model.md`](execution-model.md)、scoreboardとstorageの設計は [`state-management.md`](state-management.md) で詳しく扱います。
 
@@ -133,7 +133,7 @@ give @s minecraft:diamond_sword{display:{Name:'{"text":"Blade"}'}}
 give @s minecraft:diamond_sword[minecraft:custom_name='{"text":"Blade"}']
 ```
 
-1.21.5 以降の text component はコマンド引数で SNBT component を取る場面が増えます。対象版ファイルの text component 変更を必ず適用してください。
+1.21.5 以降の text component はコマンド引数で SNBT component を取る場面が増えます。対象バージョンファイルの text component 変更を必ず適用してください。
 
 ## function の起動
 
@@ -190,7 +190,7 @@ execute store result score #value example.tmp run data get storage example:data 
 - context: `as`, `at`, `positioned`, `positioned as`, `rotated`, `rotated as`, `facing`, `align`, `anchored`, `in`
 - 条件: `if|unless block`, `blocks`, `entity`, `score`, `predicate`, `data`
 - 保存: `store result|success score|bossbar|storage|entity|block ...`
-- 関係: `on <relation>`。追加時期と利用可能な relation は版ごとに確認
+- 関係: `on <relation>`。追加時期と利用可能な relation はバージョンごとに確認
 - 終端: `run <command>`
 
 `as` は実行 entity だけを変え、位置は変えません。entity の位置も必要なら通常 `as <selector> at @s` とします。
@@ -209,7 +209,7 @@ execute if function example:check run say passed
 ```
 
 - `return <value>` は 1.20 で追加
-- `return run` と `execute if|unless function` は 1.20.2 正式版では利用不可。開発途中で除かれ、1.20.3 で再導入
+- `return run` と `execute if|unless function` は 1.20.2 正式リリースでは利用不可。開発途中で除かれ、1.20.3 で再導入
 - 1.20.3 以降、通常の function は `return` しない限り result を持たない。`execute store ... run function` の旧挙動を前提にしない
 
 ## 状態管理
@@ -226,7 +226,7 @@ scoreboard players operation #out example.tmp = #in example.tmp
 ```
 
 - objective 名と fake player 名は他パックと衝突しない接頭辞にする
-- objective の長さ制限などは 1.18 で緩和されたが、古い版対応なら最古版の制約に合わせる
+- objective の長さ制限などは 1.18 で緩和されたが、古いバージョン対応なら最古バージョンの制約に合わせる
 - 1.20.3 で score holder の表示名と number format が追加
 - 1.21.11 で gamerule 名は namespaced snake_case へ変わったが scoreboard objective の resource location 化ではない
 
@@ -255,11 +255,11 @@ execute if entity @s[tag=example.active] run function example:active
 
 entity tag は resource location ではなく文字列で、保存 NBT の `Tags` に入ります。長期状態、scoreboard、advancement、predicate のどれを使うべきかを用途で分けます。
 
-## 主要コマンドの版境界
+## 主要コマンドのバージョン境界
 
-この表はデータパック実装へ直接影響する追加・削除です。同じコマンド内の細かな branch 追加は各版ファイルを参照してください。
+この表はデータパック実装へ直接影響する追加・削除です。同じコマンド内の細かな branch 追加は各バージョンファイルを参照してください。
 
-| 正式版 | 追加・変更 |
+| 正式リリース | 追加・変更 |
 |---|---|
 | 1.13 | `/advancement`, `/bossbar`, `/data`, `/datapack`, `/execute` 再設計、`/function`, `/reload`, function tag、`/tag`, `/team`。`/blockdata`, `/entitydata`, `/execute` 旧構文等を削除 |
 | 1.13.1 | `/forceload` |
@@ -272,7 +272,7 @@ entity tag は resource location ではなく文字列で、保存 NBT の `Tags
 | 1.19.3 | `/fillbiome`、`execute positioned over <heightmap>` 等 |
 | 1.19.4 | `/damage`, `/ride`、`data modify ... string`、execute 条件の追加 |
 | 1.20 | `/return <value>` |
-| 1.20.2 | `/random`、function macro。正式版では `return run` と `execute if function` は利用不可 |
+| 1.20.2 | `/random`、function macro。正式リリースでは `return run` と `execute if function` は利用不可 |
 | 1.20.3 | `/tick`、`return run`, `return fail`, `execute if|unless function` |
 | 1.20.5 | `/transfer` |
 | 1.21.2 | `/rotate` |
@@ -285,7 +285,7 @@ entity tag は resource location ではなく文字列で、保存 NBT の `Tags
 
 ## 現行コマンドの分類
 
-26.2 の通常 command set を、AI が用途を選ぶために分類します。対象版に存在するかは上表と `commands.json` で制限してください。
+26.2 の通常 command set を、AI が用途を選ぶために分類します。対象バージョンに存在するかは上表と `commands.json` で制限してください。
 
 | 分類 | コマンド |
 |---|---|

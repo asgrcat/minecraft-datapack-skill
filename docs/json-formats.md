@@ -1,6 +1,6 @@
 # JSON、SNBT、データ種別
 
-この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象版 server JAR の vanilla data と registry report を、その版の完全なフィールド定義の実例として併用します。
+この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンの完全なフィールド定義の実例として併用します。
 
 ## JSON と SNBT を混同しない
 
@@ -21,7 +21,7 @@
 - コメント、末尾カンマ、single quote、`1b` のような NBT suffix は不可
 - `true`, `false`, `null` は小文字
 - ファイルは UTF-8。1.19.3 以降は非 ASCII を `\uXXXX` にせず直接書けることが明文化された
-- 不明フィールドが無視されるかエラーかは codec と版で異なる。26.2 の entity predicate のように「以前は無視、以後は拒否」へ変わることがある
+- 不明フィールドが無視されるかエラーかは codec とバージョンで異なる。26.2 の entity predicate のように「以前は無視、以後は拒否」へ変わることがある
 
 ### SNBT
 
@@ -34,13 +34,13 @@ command 引数、entity/block entity NBT、storage、structure の文字列表�
 - key や単純な string は引用を省ける場合がある
 - byte/short/long/float/double の suffix (`b`, `s`, `L`, `f`, `d`) がある
 - typed array は `[I;1,2,3]` のように書く
-- 1.21.5 以降は heterogeneous list を扱えるが、古い版向け SNBT へ混在型 list を出力しない
+- 1.21.5 以降は heterogeneous list を扱えるが、古いバージョン向け SNBT へ混在型 list を出力しない
 
 ### text component
 
 - 1.20.4 以前の多くの command/NBT 例は「JSON 文字列を SNBT string に入れる」二重 quoting を使う
 - 1.21.5 で text component の保存と command 引数が大きく変わり、多くの場面で JSON 文字列ではなく SNBT object を直接取る
-- text component は使う場所ごとに許容表現が異なる。対象版の vanilla data または command graph で確認する
+- text component は使う場所ごとに許容表現が異なる。対象バージョンの vanilla data または command graph で確認する
 
 ## namespace と resource path
 
@@ -101,11 +101,11 @@ data/<namespace>/
     └── <registry-name>/
 ```
 
-1.21 で `functions → function`, `loot_tables → loot_table`, `tags/items → tags/item` のように rename されました。旧フォルダを同居させて済ませず、複数版対応では overlay を使います。
+1.21 で `functions → function`, `loot_tables → loot_table`, `tags/items → tags/item` のように rename されました。旧フォルダを同居させて済ませず、複数バージョン対応では overlay を使います。
 
 ## データ種別の導入・変更表
 
-| 種別 | 最初の正式版 | 配置と役割 |
+| 種別 | 最初の正式リリース | 配置と役割 |
 |---|---:|---|
 | function | 1.13 | command を列挙する `.mcfunction` |
 | advancement | 1.13 | trigger、criteria、requirements、reward |
@@ -114,7 +114,7 @@ data/<namespace>/
 | structure | 1.13 | structure block 互換の圧縮 NBT (`.nbt`) |
 | tag | 1.13 | registry entry または function の集合 |
 | predicate | 1.15 | loot condition を再利用可能な JSON にしたもの |
-| dimension / dimension_type / worldgen | 1.16.2 | カスタム world generation。導入当初から版間変更が多い |
+| dimension / dimension_type / worldgen | 1.16.2 | カスタム world generation。導入当初からバージョン間変更が多い |
 | item modifier | 1.17 | loot function の再利用可能な JSON |
 | chat_type | 1.19 | chat message の decoration/narration |
 | damage_type | 1.19.4 | damage の message/scaling/exhaustion/effects |
@@ -133,9 +133,9 @@ data/<namespace>/
 | cat/chicken/cow/pig_sound_variant | 26.1 | mob の adult/baby sound set |
 | sulfur_cube_archetype | 26.2 | Sulfur Cube の item 群、浮力、爆発 |
 
-この表は「その型が使用可能になる下限」です。型の内部フィールドは導入後も変わるため、版ファイルの差分を優先します。
+この表は「その型が使用可能になる下限」です。型の内部フィールドは導入後も変わるため、バージョンファイルの差分を優先します。
 
-## 26.2 の安定版フォルダ一覧
+## 26.2 の安定リリースフォルダ一覧
 
 `data/<namespace>/` 直下で使える主要型:
 
@@ -203,7 +203,7 @@ worldgen/template_pool
 worldgen/world_preset
 ```
 
-この一覧を古い版へそのまま使ってはいけません。対象版で実在する folder は server JAR から生成した `data/minecraft/` で確認します。
+この一覧を古いバージョンへそのまま使ってはいけません。対象バージョンで実在する folder は server JAR から生成した `data/minecraft/` で確認します。
 
 ## `pack.mcmeta`
 
@@ -243,7 +243,7 @@ data/example/tags/blocks/mineable.json         # 1.20.6以前
 
 - `replace` 省略時は false。下位 pack の同名 tag へ追加
 - string は entry ID、`#` 付きは別 tag
-- optional object の使用可否と field 名は対象版で確認する
+- optional object の使用可否と field 名は対象バージョンで確認する
 - tag file があるだけでは registry entry 自体を新規作成できない。存在する entry を分類する
 - function tag の `values` は順序に意味がある
 
@@ -307,7 +307,7 @@ criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復event�
 注意:
 
 - `display.icon` の item stack 形式は 1.20.5 の component 化で変わる
-- advancement trigger の `conditions` は版ごとに変わる。1.20 では `placed_block`, `item_used_on_block`, `allay_drop_item_on_block` の複数 field が `location` へ統合された
+- advancement trigger の `conditions` はバージョンごとに変わる。1.20 では `placed_block`, `item_used_on_block`, `allay_drop_item_on_block` の複数 field が `location` へ統合された
 - trigger 名を推測しない。vanilla advancement または registry report を確認する
 
 ## predicate
@@ -409,7 +409,7 @@ item modify entity @s weapon.mainhand example:reward
 - entry: item/tag/loot_table/dynamic/empty と、group/alternatives/sequence 等の合成
 - condition: predicate と同じ condition codec
 - function: item modifier と同じ loot function codec
-- number provider: constant、uniform、binomial、score、storage 等。利用可否は版依存
+- number provider: constant、uniform、binomial、score、storage 等。利用可否はバージョン依存
 
 `type` は利用可能な loot context を決めます。context にない `tool` や entity target を参照すると validation error または実行時失敗になります。
 
@@ -486,7 +486,7 @@ item modify entity @s weapon.mainhand example:reward
 }
 ```
 
-`result` は component を持てる版があります。ingredient の object/list/inline 表現は変更されているため、対象版の vanilla recipe と同じ形にします。
+`result` は component を持てるバージョンがあります。ingredient の object/list/inline 表現は変更されているため、対象バージョンの vanilla recipe と同じ形にします。
 
 代表 type:
 
@@ -515,7 +515,7 @@ damage の性質は旧 boolean field ではなく damage type tag で分類し�
 damage @s 4 example:custom
 ```
 
-data-driven registry を追加すると experimental 扱いになる版があります。world 作成/読み込み時の警告も検査してください。
+data-driven registry を追加すると experimental 扱いになるバージョンがあります。world 作成/読み込み時の警告も検査してください。
 
 ## structure
 
@@ -524,17 +524,17 @@ data-driven registry を追加すると experimental 扱いになる版があり
 - structure block で保存するか、data generator で `.snbt` と相互変換する
 - resource path は 1.20.6 以前の `structures/`、1.21 以降の `structure/`
 - 直接 binary をテキスト編集しない
-- block/entity palette と data version の変換は対象版で実際に load/save して確認する
+- block/entity palette と data version の変換は対象バージョンで実際に load/save して確認する
 
 ## world generation
 
 worldgen は1つの固定 schema ではなく、registry と dispatch `type` ごとの codec 群です。AI は次の順で作成します。
 
-1. 対象版 server JAR から vanilla data を生成
+1. 対象バージョン server JAR から vanilla data を生成
 2. 作りたい `type` と同じ vanilla file を最小の基底例に選ぶ
-3. `type` 固有 field だけ変更し、参照する biome/feature/noise/tag が対象版 registry に存在するか確認
+3. `type` 固有 field だけ変更し、参照する biome/feature/noise/tag が対象バージョン registry に存在するか確認
 4. `/reload` だけでなく、新規 world または未生成 chunk で検査
-5. 版をまたぐときは worldgen JSON を共有せず、差分の大きい境界ごとに overlay または別 pack を使う
+5. バージョンをまたぐときは worldgen JSON を共有せず、差分の大きい境界ごとに overlay または別 pack を使う
 
 主な folder:
 
@@ -552,7 +552,7 @@ worldgen は1つの固定 schema ではなく、registry と dispatch `type` ご
 
 ## データ駆動 registry
 
-enchantment、variant、dialog、trade 等も `type` や effect の組合せが多いため、共通の空 object を「最小例」として生成してはいけません。対象版 vanilla に同型がない custom entry では、公式リリースノートの field list を codec として使います。
+enchantment、variant、dialog、trade 等も `type` や effect の組合せが多いため、共通の空 object を「最小例」として生成してはいけません。対象バージョン vanilla に同型がない custom entry では、公式リリースノートの field list を codec として使います。
 
 AI の規則:
 
@@ -580,16 +580,16 @@ AI の規則:
 
 ## JSON を生成する AI のチェックリスト
 
-1. 対象正式版を1つに固定したか
-2. その版の単数/複数 folder を使ったか
+1. 対象正式リリースを1つに固定したか
+2. そのバージョンの単数/複数 folder を使ったか
 3. file path と参照 resource location が一致するか
 4. JSON と SNBT の引用・数値 suffix を混ぜていないか
 5. item stack が 1.20.5 境界の正しい形式か
 6. text component が 1.21.5 境界の正しい表現か
 7. entity predicate が 26.2 境界の正しい key か
 8. `type` に対応する field と loot context だけを使ったか
-9. 参照 ID と tag が対象版 registry に存在するか
-10. 対象版 server JAR で reload、log、機能テストを完了したか
+9. 参照 ID と tag が対象バージョン registry に存在するか
+10. 対象バージョン server JAR で reload、log、機能テストを完了したか
 
 ## 参照
 

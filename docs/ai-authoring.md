@@ -20,8 +20,8 @@ python3 <harness-root>/tools/datapack_harness.py \
 - 省略された任意fieldにはハーネスの既定値を適用する。必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level`
 - 実装要件はproject設定とは別に管理する
 - `edition` は `java` だけを受け付ける
-- versionは [`versions/README.md`](versions/README.md) の正式版IDに完全一致させる
-- 一覧にないsnapshot/pre-release/Bedrock版を最寄り版へ丸めない
+- versionは [`versions/README.md`](versions/README.md) の正式リリースのIDに完全一致させる
+- 一覧にないsnapshot/pre-release/Bedrock Editionを最寄りバージョンへ丸めない
 - `26.1` を `1.26.1` に変換しない。文字列の辞書順や単純なsemver比較を使わず、version indexの順序を使う
 
 ## 解決アルゴリズム
@@ -52,7 +52,7 @@ resolve(target_version):
   reject commands, IDs and JSON resources absent from capabilities
 ```
 
-`inherits` はmetadataとAI規則の履歴を追跡するために使います。対象版へ適用するのは対象版自身の `active_ai_rules` だけです。祖先版の規則は `rule_history` として出力しますが、後続版で解除された禁止事項を累積適用しません。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成せず、command、registry、vanilla JSONの有効集合は対象版JARから直接得ます。
+`inherits` はmetadataとAI規則の履歴を追跡するために使います。対象バージョンへ適用するのは対象バージョン自身の `active_ai_rules` だけです。祖先バージョンの規則は `rule_history` として出力しますが、後続バージョンで解除された禁止事項を累積適用しません。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成せず、command、registry、vanilla JSONの有効集合は対象バージョンのJARから直接得ます。
 
 機械処理では [`versions/profile.schema.json`](versions/profile.schema.json) の基本クラスと `compatibility_tags` を解釈します。本文の「コマンド」「JSON」「変更」などの見出し名は入力スキーマではありません。
 
@@ -60,25 +60,25 @@ resolve(target_version):
 
 次の場合は推測で出力しません。
 
-- 対象版にcommand branchがあるか不明
+- 対象バージョンにcommand branchがあるか不明
 - JSONの必須field、`type`固有field、loot contextが不明
-- item component、entity predicate、text componentが境界版のどちらか不明
-- block/item/entity/registry IDが対象版に存在するか不明
+- item component、entity predicate、text componentが境界バージョンのどちらか不明
+- block/item/entity/registry IDが対象バージョンに存在するか不明
 - experimental registryを通常worldで利用できるか不明
 
-代わりに対象版server JARから [`validation.md`](validation.md) のreport/vanilla dataを生成し、確認後に出力します。
+代わりに対象バージョンのserver JARから [`validation.md`](validation.md) のreport/vanilla dataを生成し、確認後に出力します。
 
 ## 出力順
 
-1. 対象版、data pack format、namespace
+1. 対象バージョン、data pack format、namespace
 2. 完全なdirectory tree
 3. `pack.mcmeta`
 4. 全 `.mcfunction`
 5. 全 JSON と必要な `.nbt` structure
 6. entry pointごとのexecutor、位置、dimension、状態owner
 7. install/reload手順
-8. 対象版での検証項目
-9. 複数版対応なら共通部分とoverlayの対応表
+8. 対象バージョンでの検証項目
+9. 複数バージョン対応なら共通部分とoverlayの対応表
 
 「変更する部分だけ」を依頼された場合を除き、互いに参照するfileは省略しません。
 
@@ -86,7 +86,7 @@ resolve(target_version):
 
 - 利用者指定がなければnamespaceは `generated` のような衝突しにくいlowercase IDを提案し、確定値を全fileで統一
 - 自作function/tag/storage/predicate/loot tableは常にnamespaceを明示
-- scoreboard objectiveはresource locationではないため、対象版の長さ制約内で短い固有prefixを使う
+- scoreboard objectiveはresource locationではないため、対象バージョンの長さ制約内で短い固有prefixを使う
 - fake player/entity tagも他packと衝突しないprefixを持つ
 - `minecraft` namespaceは `load`/`tick` tagへのentry追加や、明示されたvanilla overrideだけに使う
 
@@ -152,14 +152,14 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 
 26.2ではunknown fieldを拒否するため、旧 `type` を互換用に併記しません。
 
-## 複数版
+## 複数バージョン
 
-1. 最古版の機能集合を基底にする
+1. 最古バージョンの機能集合を基底にする
 2. [`compatibility.md`](compatibility.md) の全境界を列挙
 3. 同一pathで両立しないfileをoverlayへ
 4. 1.20.2未満を含む場合、overlayを利用できないため別pack配布も検討
 5. 1.21.9のmetadata境界をまたぐ場合、旧reader用fieldを残す条件を適用
-6. 全正式版でtestできない場合、「対応済み」と断定しない
+6. 全正式リリースでtestできない場合、「対応済み」と断定しない
 
 ## 検証levelと報告
 
@@ -167,12 +167,12 @@ project設定の `validation_level` を要求levelとします。
 
 | level | 必要な証拠 | AIが報告できること |
 |---|---|---|
-| `generated` | profile解決と全file生成 | 対象版向けに生成した |
+| `generated` | profile解決と全file生成 | 対象バージョン向けに生成した |
 | `static` | `validate-project` 成功 | 静的検査に成功した |
-| `server` | exact serverでenabled/reload成功 | 対象版serverで読み込めた |
+| `server` | exact serverでenabled/reload成功 | 対象バージョンのserverで読み込めた |
 | `functional` | 機能test成功 | 記録した機能testに成功した |
 
-AIは実行済みlevel、使用した対象版、残っているwarning、未実施の上位levelを明記します。`static` が要求levelなら、server検査を省略してもハーネス利用失敗ではありません。
+AIは実行済みlevel、使用した対象バージョン、残っているwarning、未実施の上位levelを明記します。`static` が要求levelなら、server検査を省略してもハーネス利用失敗ではありません。
 
 consumer CIは `static` を最小levelとします。`generated` levelの自動化は整備中のため、生成だけをCI成功として報告しません。
 

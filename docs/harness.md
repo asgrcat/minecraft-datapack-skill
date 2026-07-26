@@ -1,14 +1,14 @@
 # 実行ハーネス
 
-`tools/datapack_harness.py` は、正式版プロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。このCLIを使用する場合だけPython 3.10以降が必要で、追加のPython packageは使用しません。
+`tools/datapack_harness.py` は、正式リリースプロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。このCLIを使用する場合だけPython 3.10以降が必要で、追加のPython packageは使用しません。
 
 MinecraftのBrigadierとcodecを再実装しません。静的に確定できない項目は警告します。server検査を行うかはproject設定の要求levelと利用者の判断で決めます。
 
 ## 0. project設定
 
-利用者repositoryの `datapack-project.json` に対象版、namespace、pack root、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
+利用者repositoryの `datapack-project.json` に対象バージョン、namespace、pack root、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
 
-必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` です。対応範囲は省略すると対象版だけ、editionはJava、experimentalは無効、server typeはvanillaになります。cacheは `.cache/minecraft`、reportは `build/minecraft/<target_version>/generated` を使います。配布元のversion/source/commitをprojectにも残す場合は、任意の `harness` objectを追加できます。導入済みの版の正本は `VERSION` です。
+必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` です。対応範囲は省略すると対象バージョンだけ、editionはJava、experimentalは無効、server typeはvanillaになります。cacheは `.cache/minecraft`、reportは `build/minecraft/<target_version>/generated` を使います。配布元のversion/source/commitをprojectにも残す場合は、任意の `harness` objectを追加できます。導入済みのバージョンの正本は `VERSION` です。
 
 ```bash
 python3 <harness-root>/tools/datapack_harness.py \
@@ -32,7 +32,7 @@ python3 tools/datapack_harness.py profiles
 
 検査内容:
 
-- 全50版の必須front matter
+- 全50バージョンの必須front matter
 - `compatibility` の基本クラス
 - `compatibility_tags` の定義済み値
 - filenameとversionの一致
@@ -42,7 +42,7 @@ python3 tools/datapack_harness.py profiles
 
 front matterのschemaは [`versions/profile.schema.json`](versions/profile.schema.json) です。Markdown本文の任意見出しを機械可読な差分fieldとして扱いません。
 
-## 2. 対象版の解決
+## 2. 対象バージョンの解決
 
 ```bash
 python3 tools/datapack_harness.py resolve 1.20.5
@@ -50,16 +50,16 @@ python3 tools/datapack_harness.py resolve 1.20.5
 
 JSON出力:
 
-- 対象版profile
-- 1.13から対象版までのinheritance chain
-- 対象版だけの `active_ai_rules`
-- 過去版の参考履歴 `rule_history`（対象版へ適用しない）
+- 対象バージョンのprofile
+- 1.13から対象バージョンまでのinheritance chain
+- 対象バージョンだけの `active_ai_rules`
+- 過去バージョンの参考履歴 `rule_history`（対象バージョンへ適用しない）
 - command/registry/vanilla dataの正本path
 - server検査に必要なJava major
 
-versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock版、近似semverを受け付けません。
+versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock Edition、近似semverを受け付けません。
 
-`rule_history` は変更理由を追跡するための参考情報です。過去版の禁止規則を対象版へ累積適用しません。対象版で使用可能なcommand、registry、vanilla resourceは、自然言語規則ではなく対象版report/dataで決定します。
+`rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。対象バージョンで使用可能なcommand、registry、vanilla resourceは、自然言語規則ではなく対象バージョンのreport/dataで決定します。
 
 ## 3. 公式server JAR
 
@@ -88,7 +88,7 @@ python3 tools/datapack_harness.py reports 1.20.5 \
   --java /path/to/java
 ```
 
-版に応じてdata generatorの起動方法を切り替えます。
+バージョンに応じてdata generatorの起動方法を切り替えます。
 
 - 1.13〜1.17.1: classpathから `net.minecraft.data.Main`
 - 1.18以降: bundlerのmain classを指定
@@ -97,7 +97,7 @@ data generatorは自動削除される一時working directoryで実行します�
 
 必要Java major:
 
-| 正式版 | Java |
+| 正式リリース | Java |
 |---|---:|
 | 1.13〜1.16.5 | 8 |
 | 1.17〜1.17.1 | 16 |
@@ -105,7 +105,7 @@ data generatorは自動削除される一時working directoryで実行します�
 | 1.20.5〜1.21.11 | 21 |
 | 26.1以降 | 25 |
 
-ハーネスは必要majorを表示します。複数JDKがある環境では `--java` へ対象版用の実行ファイルを指定します。
+ハーネスは必要majorを表示します。複数JDKがある環境では `--java` へ対象バージョン用の実行ファイルを指定します。
 
 ## 5. pack静的検査
 
@@ -169,31 +169,31 @@ python3 tools/datapack_harness.py server-test 1.20.5 path/to/pack \
 
 server検査は一時worldを使用します。既存worldをupgradeしません。旧world migration testは、利用者が複製した専用worldで別に行います。
 
-### 境界版integration matrix
+### 境界バージョンのintegration matrix
 
 通常CIのunit testでは、旧形式と現行形式の代表的なenabled一覧、reload開始・完了、失敗logをparserへ入力します。これは実serverの起動確認ではありません。
 
-release前には、EULAへ同意できる隔離環境で版ごとに正しい最小packとJDKを用意し、次を実行します。
+release前には、EULAへ同意できる隔離環境でバージョンごとに正しい最小packとJDKを用意し、次を実行します。
 
-| 正式版 | Java | 確認する境界 |
+| 正式リリース | Java | 確認する境界 |
 |---|---:|---|
-| 1.13 | 8 | 最古版、複数形folder |
+| 1.13 | 8 | 最古バージョン、複数形folder |
 | 1.17 | 16 | Java 16 |
 | 1.18 | 17 | bundler起動 |
 | 1.20.5 | 21 | item component |
 | 1.21.9 | 21 | minor pack format metadata |
-| 26.2 | 25 | 最新対応版 |
+| 26.2 | 25 | 最新対応バージョン |
 
-各版で `--expect-log` を指定し、成功logを保存します。実行していない版について「server-test互換性確認済み」と記録しません。
+各バージョンで `--expect-log` を指定し、成功logを保存します。実行していないバージョンについて「server-test互換性確認済み」と記録しません。
 
 ## 保証レベル
 
 | 段階 | 保証 |
 |---|---|
-| `profiles` | 版metadata・継承・互換性schemaの整合 |
-| `resolve` | 対象版と適用規則の決定 |
+| `profiles` | バージョンのmetadata・継承・互換性schemaの整合 |
+| `resolve` | 対象バージョンと適用規則の決定 |
 | `fetch` | 公式release JARとSHA-1 |
-| `reports` | 対象版のcommand graph・registry・vanilla data |
+| `reports` | 対象バージョンのcommand graph・registry・vanilla data |
 | `validate-pack` | pack構造と一部参照の静的検査 |
 | `server-test` | exact serverでpack有効化、reload完了、既知load error不在を検査 |
 | GameTest/client E2E | gameplay要件の結果 |

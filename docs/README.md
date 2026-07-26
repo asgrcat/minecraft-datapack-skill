@@ -1,30 +1,30 @@
 # Minecraft Java Edition データパック仕様
 
-このディレクトリは、データパックが正式導入された Java Edition 1.13 から 26.2 までの**正式リリース**を対象にした、実装用の仕様索引です。スナップショット固有の形式は、正式版に残った変更を説明するために必要な場合だけ扱います。Bedrock Edition、Mod ローダー固有仕様、リソースパックだけの仕様は対象外です。
+このディレクトリは、データパックが正式導入された Java Edition 1.13 から 26.2 までの**正式リリース**を対象にした、実装用の仕様索引です。スナップショット固有の形式は、正式リリースに残った変更を説明するために必要な場合だけ扱います。Bedrock Edition、Mod ローダー固有仕様、リソースパックだけの仕様は対象外です。
 
 ## 最短の使い方
 
 導入と更新はrepository rootの [`README.md`](../README.md) を先に読みます。
 
 1. 利用者repositoryの `datapack-project.json` を `project-check` する
-2. [`versions/README.md`](versions/README.md) から完全一致する対象ゲーム版を解決する
-3. 対象版ファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
-4. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象版で利用可能と明記された構文だけを使う
+2. [`versions/README.md`](versions/README.md) から完全一致する対象ゲームバージョンを解決する
+3. 対象バージョンファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
+4. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象バージョンで利用可能と明記された構文だけを使う
 5. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
 6. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
-7. 複数版対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
+7. 複数バージョン対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
 8. project設定が要求する検証levelまで実行し、未実施の上位levelを明記する
 
-「最新の構文を古い版向けに書き戻す」より、対象版の仕様を最初から選ぶことを優先してください。`pack_format` が同じでも、コマンド、NBT、レジストリ、JSON の意味が変わる場合があります。
+「最新の構文を古いバージョン向けに書き戻す」より、対象バージョンの仕様を最初から選ぶことを優先してください。`pack_format` が同じでも、コマンド、NBT、レジストリ、JSON の意味が変わる場合があります。
 
 ## 文書の役割
 
 | 文書 | 用途 |
 |---|---|
-| [`versions/README.md`](versions/README.md) | 全正式版、公開日、data pack format の対応表 |
-| [`versions/<version>.md`](versions/README.md) | そのゲーム版の確定プロファイル、前版との差分、互換性 |
-| [`ai-authoring.md`](ai-authoring.md) | AIが版を解決し、ファイルを生成する決定手順 |
-| [`commands.md`](commands.md) | `.mcfunction` の書式、引数、実行文脈、コマンドの版境界 |
+| [`versions/README.md`](versions/README.md) | 全正式リリース、公開日、data pack format の対応表 |
+| [`versions/<version>.md`](versions/README.md) | そのゲームバージョンの確定プロファイル、前バージョンとの差分、互換性 |
+| [`ai-authoring.md`](ai-authoring.md) | AIがバージョンを解決し、ファイルを生成する決定手順 |
+| [`commands.md`](commands.md) | `.mcfunction` の書式、引数、実行文脈、コマンドのバージョン境界 |
 | [`execution-model.md`](execution-model.md) | executor、位置、分岐、function結果、load/tick/scheduleの細かな挙動 |
 | [`state-management.md`](state-management.md) | scoreboard、storage、entity tag、永続性、migration |
 | [`advancements.md`](advancements.md) | criteria、requirements、reward、grant/revoke、player event |
@@ -32,7 +32,7 @@
 | [`content-hooks.md`](content-hooks.md) | 追加block/entity/itemと観測・制御手段、データパック企画の着眼点 |
 | [`gameplay-requirements.md`](gameplay-requirements.md) | 共同eventを例にした複合要件の可否、状態遷移、競合、cleanup |
 | [`implementation-patterns.md`](implementation-patterns.md) | 状態機械、timer、event queue、API、性能、testの中上級パターン |
-| [`harness.md`](harness.md) | 版解決、JAR/SHA-1、report生成、静的検査、server reloadの実行方法 |
+| [`harness.md`](harness.md) | バージョン解決、JAR/SHA-1、report生成、静的検査、server reloadの実行方法 |
 | [`compatibility.md`](compatibility.md) | 後方互換、前方互換、overlay、移行方針 |
 | [`validation.md`](validation.md) | 公式 JAR から正確なコマンド木・レジストリ・vanilla JSON を得る方法 |
 | [`sources.md`](sources.md) | 採用した一次資料と Minecraft Wiki の使い分け |
@@ -43,7 +43,7 @@
 
 `versions/<version>.md` → `commands.md` → `json-formats.md` → `validation.md`
 
-対象版で読み込める最小packを作り、構文・配置・JSON codecを確認します。
+対象バージョンで読み込める最小packを作り、構文・配置・JSON codecを確認します。
 
 ### 中級
 
@@ -68,20 +68,20 @@ python3 tools/datapack_harness.py resolve 1.20.5
 
 project設定、公式JARの任意取得、report生成、pack静的検査、server reloadまでの手順は [`harness.md`](harness.md) を参照してください。
 
-## AI が対象版を決める規則
+## AI が対象バージョンを決める規則
 
-入力にゲーム版がある場合、次の順序を変えてはいけません。
+入力にゲームバージョンがある場合、次の順序を変えてはいけません。
 
-1. 文字列を正式版 ID として完全一致させる。`1.20` と `1.20.1`、`26.1` と `1.26.1` は別物である
-2. 対応する版ファイルの YAML front matter を読み、`data_pack_format` と `directory_schema` を採用する
-3. `inherits` はmetadataと規則の履歴追跡に使い、生成へ適用するのは対象版自身の `AI 生成規則` だけとする。コマンド・registry・vanilla JSONの機械判定は自然言語の見出しでなく、対象版JARのreport/dataで確定する
-4. 未指定の機能を、対象版より後に導入されたという理由だけで代替実装なしに使わない
-5. 対象版より新しい公式例を流用する場合、コマンド木、フォルダ名、JSON フィールド、ID、NBT、item component をすべて対象版へ変換する
-6. 検証できない構文を推測で出力せず、対象版 server JAR の `generated/reports/commands.json` または vanilla data を参照する
+1. 文字列を正式リリース ID として完全一致させる。`1.20` と `1.20.1`、`26.1` と `1.26.1` は別物である
+2. 対応するバージョンファイルの YAML front matter を読み、`data_pack_format` と `directory_schema` を採用する
+3. `inherits` はmetadataと規則の履歴追跡に使い、生成へ適用するのは対象バージョン自身の `AI 生成規則` だけとする。コマンド・registry・vanilla JSONの機械判定は自然言語の見出しでなく、対象バージョンのJARのreport/dataで確定する
+4. 未指定の機能を、対象バージョンより後に導入されたという理由だけで代替実装なしに使わない
+5. 対象バージョンより新しい公式例を流用する場合、コマンド木、フォルダ名、JSON フィールド、ID、NBT、item component をすべて対象バージョンへ変換する
+6. 検証できない構文を推測で出力せず、対象バージョン server JAR の `generated/reports/commands.json` または vanilla data を参照する
 
 ## 重要な境界
 
-| ゲーム版 | 形式 | 実装上の境界 |
+| ゲームバージョン | 形式 | 実装上の境界 |
 |---|---:|---|
 | 1.13 | 4 | データパック正式導入、Brigadier ベースのコマンド体系 |
 | 1.15 | 5 | predicate JSON |
@@ -97,19 +97,19 @@ project設定、公式JARの任意取得、report生成、pack静的検査、ser
 | 1.21 | 48 | データフォルダ名を原則単数形へ変更、enchantment 等をデータ駆動化 |
 | 1.21.5 | 71 | text component の SNBT 化、entity/equipment NBT の大改編 |
 | 1.21.6 | 80 | dialog、waypoint、`/version`、`/datapack create` |
-| 1.21.9 | 88.0 | pack format の minor 版と新しい `pack.mcmeta` 範囲指定 |
+| 1.21.9 | 88.0 | pack format の minor バージョンと新しい `pack.mcmeta` 範囲指定 |
 | 1.21.11 | 94.1 | gamerule の namespaced snake_case 化、timeline、slot source |
-| 26.1 | 101.1 | 年ベースのゲーム版番号、world clock、trade/variant のデータ駆動化 |
+| 26.1 | 101.1 | 年ベースのゲームバージョン番号、world clock、trade/variant のデータ駆動化 |
 | 26.2 | 107.1 | entity predicate の component-map 化と厳格化 |
 
 ## 完全性の意味
 
-このリポジトリで「網羅」は、正式版ごとに次を一意に決められることを指します。
+このリポジトリで「網羅」は、正式リリースごとに次を一意に決められることを指します。
 
 - pack metadata とフォルダ構造
 - `.mcfunction` の字句規則と、使用可能なコマンド/引数
 - JSON データ種別、配置、主要な最小形
-- 版をまたぐ追加・変更・削除と移行上の注意
-- server JAR から、その版の完全なコマンド木・レジストリ・vanilla 例を再生成する方法
+- バージョンをまたぐ追加・変更・削除と移行上の注意
+- server JAR から、そのバージョンの完全なコマンド木・レジストリ・vanilla 例を再生成する方法
 
-ゲーム内の全 block/item/entity ID や、worldgen の全組合せを Markdown に複製はしません。これらは版ごとに数と内容が変わるため、公式 JAR が生成するレポートと vanilla data を正本とします。
+ゲーム内の全 block/item/entity ID や、worldgen の全組合せを Markdown に複製はしません。これらはバージョンごとに数と内容が変わるため、公式 JAR が生成するレポートと vanilla data を正本とします。

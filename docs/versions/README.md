@@ -1,10 +1,10 @@
-# 正式版プロファイル一覧
+# 正式リリースプロファイル一覧
 
-各ファイルは、その正式版でデータパックを生成するための確定プロファイルです。`inherits` を前版へ辿り、当該版の差分で上書きします。同じ data pack format でも差分を省略しないでください。
+各ファイルは、その正式リリースでデータパックを生成するための確定プロファイルです。`inherits` を前バージョンへ辿り、当該バージョンの差分で上書きします。同じ data pack format でも差分を省略しないでください。
 
-追加されたblock・entity・itemを「何に使えるか」から探す場合は、版プロファイルと併せて [`../content-hooks.md`](../content-hooks.md) を参照してください。全IDは対象版server JARのregistry reportから生成します。
+追加されたblock・entity・itemを「何に使えるか」から探す場合は、バージョンプロファイルと併せて [`../content-hooks.md`](../content-hooks.md) を参照してください。全IDは対象バージョンのserver JARのregistry reportから生成します。
 
-front matterの機械可読schemaは [`profile.schema.json`](profile.schema.json) です。`compatibility` は基本クラス、`compatibility_tags` は追加の移行理由を表します。`tools/datapack_harness.py profiles` で全版のschema、継承、共通見出しを検査できます。
+front matterの機械可読schemaは [`profile.schema.json`](profile.schema.json) です。`compatibility` は基本クラス、`compatibility_tags` は追加の移行理由を表します。`tools/datapack_harness.py profiles` で全バージョンのschema、継承、共通見出しを検査できます。
 
 | Java Edition | 公開日 | data pack format | folder | 互換性 |
 |---|---:|---:|---|---|

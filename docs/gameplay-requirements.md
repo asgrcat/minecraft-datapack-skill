@@ -2,7 +2,7 @@
 
 この文書は、複数のvanilla機構を組み合わせる要件について、データパック単独で可能な範囲、回避不能な挙動、代替実装、cleanup、機能testを決定します。
 
-個々の構文が存在するだけで実現可能と判定しません。対象版のcommand graph、観測可能な状態、永続状態、multiplayerでの競合を分けて評価します。
+個々の構文が存在するだけで実現可能と判定しません。対象バージョンのcommand graph、観測可能な状態、永続状態、multiplayerでの競合を分けて評価します。
 
 ## 判定カード
 
@@ -10,7 +10,7 @@
 
 ```text
 要件:
-対応する正式版:
+対応する正式リリース:
 利用するvanilla機構:
 データパック単独で可能な範囲:
 回避不能なvanilla挙動:
@@ -24,7 +24,7 @@ cleanup条件:
 
 | 判定 | 意味 |
 |---|---|
-| 可能 | 対象版の公開command/data機構だけで要件を満たせる |
+| 可能 | 対象バージョンの公開command/data機構だけで要件を満たせる |
 | 条件付き | 観測間隔、近似、入力制限、resource pack等の条件がある |
 | 不可 | datapackから観測・制御できないclient/engine挙動が必須 |
 
@@ -34,15 +34,15 @@ cleanup条件:
 
 指定エリアへ必要人数が集まるとカウントダウンを開始し、終了時まで残った参加者へ報酬を一度だけ配布します。人数が下限を割った場合は中断し、再び条件を満たしたときに最初から開始します。
 
-### 対応する正式版
+### 対応する正式リリース
 
-| 正式版 | 判定 |
+| 正式リリース | 判定 |
 |---|---|
 | 1.13以降 | scoreboard、selector、function tagを使って実装可能 |
 | 複数dimensionを同時運用 | dimensionごとの実行位置とevent IDを分離する条件付き |
 | server停止中も実時間で進行 | データパック単独では不可。tick時間として停止するか、外部時刻源が必要 |
 
-この例では最小対応版を1.13とします。新しい版の構文を使う場合も、対象版profileとcommand graphで下限を再確認します。
+この例では最小対応バージョンを1.13とします。新しいバージョンの構文を使う場合も、対象バージョンのprofileとcommand graphで下限を再確認します。
 
 ### 利用するvanilla機構
 
@@ -173,7 +173,7 @@ execute as @a[scores={ex.rewarded=0}] if score @s ex.join_gen = #event ex.gen ru
 | 要件の本質 | 代替 |
 |---|---|
 | 正確な実時間で開始したい | plugin/mod等の外部時刻源を使う |
-| playerの明示参加が必要 | advancement trigger、interaction entity、dialog等の対象版で使える入力を選ぶ |
+| playerの明示参加が必要 | advancement trigger、interaction entity、dialog等の対象バージョンで使える入力を選ぶ |
 | 広い領域で参加を検知したい | 常時全域走査ではなく、入口で候補tagを付けて局所判定する |
 | 複数eventを同時進行したい | event IDとgenerationを分け、共有fake playerへ状態を混在させない |
 | 報酬を厳密に一度だけにしたい | advancementまたは永続scoreを配布台帳にする |

@@ -11,9 +11,9 @@
 
 1. `pack_format` が同じだからコマンドや NBT も同じ、とは限らない。例として 1.19〜1.19.3 は形式 10 のまま `/fillbiome` などが加わる
 2. 警告なしで読み込めたから全ファイルが有効、とは限らない。不明な JSON、存在しない ID、構文エラーの function は reload 時に失敗し得る
-3. 形式番号を古い値へ書き換えるだけで前方互換にはならない。フォルダ名、JSON、command、NBT、ID をすべて対象版へ合わせる必要がある
-4. vanilla の保存 NBT は公開 API ではない。版をまたぐ rename/removal があるため、entity/block entity NBT を直接扱う処理は版ごとに検査する
-5. スナップショットの pack format を正式版へ持ち込まない。正式版の版ファイルに記載した値を使う
+3. 形式番号を古い値へ書き換えるだけで前方互換にはならない。フォルダ名、JSON、command、NBT、ID をすべて対象バージョンへ合わせる必要がある
+4. vanilla の保存 NBT は公開 API ではない。バージョンをまたぐ rename/removal があるため、entity/block entity NBT を直接扱う処理はバージョンごとに検査する
+5. スナップショットの pack format を正式リリースへ持ち込まない。正式リリースのバージョンファイルに記載した値を使う
 
 ## `pack.mcmeta` の時代別最小形
 
@@ -28,7 +28,7 @@
 }
 ```
 
-`15` は例として 1.20/1.20.1 の値です。対象版の値へ置換します。`description` は text component ですが、単純な文字列が最も広く互換です。
+`15` は例として 1.20/1.20.1 の値です。対象バージョンの値へ置換します。`description` は text component ですが、単純な文字列が最も広く互換です。
 
 ### 1.20.2〜1.21.8
 
@@ -51,7 +51,7 @@
 
 ### 1.21.9〜26.2
 
-pack version は `[major, minor]` です。単一の正式版へ厳密に固定する場合は次の形を使います。
+pack version は `[major, minor]` です。単一の正式リリースへ厳密に固定する場合は次の形を使います。
 
 ```json
 {
@@ -75,14 +75,14 @@ pack version は `[major, minor]` です。単一の正式版へ厳密に固定�
 
 ## overlay
 
-overlay は 1.20.2 で導入されました。基底の `data/` を全対象版で共通にし、破壊的に変わったファイルだけ overlay に置きます。
+overlay は 1.20.2 で導入されました。基底の `data/` を全対象バージョンで共通にし、破壊的に変わったファイルだけ overlay に置きます。
 
 ```text
 example_pack/
 ├── pack.mcmeta
 ├── data/
 │   └── example/
-│       └── functions/          # 古い版向けの基底（1.21 未満）
+│       └── functions/          # 古いバージョン向けの基底（1.21 未満）
 └── v1_21/
     └── data/
         └── example/
@@ -140,14 +140,14 @@ overlay は列挙順に適用され、後から適用される内容が同じ re
 
 ## 互換性クラス
 
-各版ファイルの `compatibility` は次の4種類だけを使います。追加の意味は任意の `compatibility_tags` 配列へ分離します。機械可読な定義は [`versions/profile.schema.json`](versions/profile.schema.json) を正本とします。
+各バージョンファイルの `compatibility` は次の4種類だけを使います。追加の意味は任意の `compatibility_tags` 配列へ分離します。機械可読な定義は [`versions/profile.schema.json`](versions/profile.schema.json) を正本とします。
 
 | クラス | 意味 | AI の動作 |
 |---|---|---|
-| `same-format` | 前版と同じ pack format | 差分を適用し、構文まで同じとは仮定しない |
+| `same-format` | 前バージョンと同じ pack format | 差分を適用し、構文まで同じとは仮定しない |
 | `breaking-format` | pack major が変化 | 自動的に共通化せず、移行項目を処理する |
-| `metadata-break` | metadata schema 自体が変化 | `pack.mcmeta` を対象版用に生成し直す |
-| `hotfix` | データパック仕様の意図的変更がない修正版 | 直前版の仕様を継承する。ただし既知バグの挙動差はあり得る |
+| `metadata-break` | metadata schema 自体が変化 | `pack.mcmeta` を対象バージョン用に生成し直す |
+| `hotfix` | データパック仕様の意図的変更がない修正リリース | 直前バージョンの仕様を継承する。ただし既知バグの挙動差はあり得る |
 
 `minor-compatible` はreleaseの互換性クラスではありません。1.21.9以降のpack formatでmajorが同じかを、`data_pack_format` のmajor/minor比較から計算する関係です。
 
@@ -155,7 +155,7 @@ overlay は列挙順に適用され、後から適用される内容が同じ re
 
 | tag | 意味 |
 |---|---|
-| `origin` | 現行版プロファイルの起点 |
+| `origin` | 現行バージョンプロファイルの起点 |
 | `behavior-fix` | 同じformat内の挙動修正 |
 | `schema-break` | 同じformat内のJSON等のschema変更 |
 | `experimental` | experimental/data-driven worldgen境界 |
@@ -167,14 +167,14 @@ overlay は列挙順に適用され、後から適用される内容が同じ re
 | `small-delta` | format変更を伴う小差分 |
 | `world-storage` | world保存形式の大変更 |
 
-## 版をまたぐ設計手順
+## バージョンをまたぐ設計手順
 
-1. 対象となる最古・最新の正式版を決める
-2. その区間にある全版ファイルの `compatibility`、`compatibility_tags`、`AI 生成規則` を集める
-3. 各対象版JARのcommand/registry/vanilla dataを比較し、最古版でも使える機能だけを基底に置く
+1. 対象となる最古・最新の正式リリースを決める
+2. その区間にある全バージョンファイルの `compatibility`、`compatibility_tags`、`AI 生成規則` を集める
+3. 各対象バージョンのJARのcommand/registry/vanilla dataを比較し、最古バージョンでも使える機能だけを基底に置く
 4. フォルダ rename、item component、text component、gamerule など同一ファイル内で両立しない差分を overlay へ分離する
-5. 新機能がなくても動く代替実装を用意できなければ、その版を対応範囲から外す
-6. 範囲内の**各正式版**で reload と機能テストを行う。両端だけの検査では、途中の同形式変更を見落とす
+5. 新機能がなくても動く代替実装を用意できなければ、そのバージョンを対応範囲から外す
+6. 範囲内の**各正式リリース**で reload と機能テストを行う。両端だけの検査では、途中の同形式変更を見落とす
 
 ## filter
 

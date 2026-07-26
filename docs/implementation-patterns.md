@@ -2,7 +2,7 @@
 
 この文書は、個別構文を組み合わせて保守可能なデータパックを設計する定型を示します。先に [`execution-model.md`](execution-model.md)、[`state-management.md`](state-management.md)、[`advancements.md`](advancements.md) を参照してください。
 
-例は概念を示す最小形です。対象版のdirectory、command、item/text/predicate形式へ解決してから使用します。
+例は概念を示す最小形です。対象バージョンのdirectory、command、item/text/predicate形式へ解決してから使用します。
 
 ## 構成
 
@@ -120,7 +120,7 @@ scoreboard players reset @s example.timer
 - game tick基準: scoreboard
 - world全体の少数task: schedule
 - 実時間基準: Minecraft tickだけで厳密に測らない
-- offline中も進める期限: world clock/timeや保存timestampを対象版の機能に合わせて検討する
+- offline中も進める期限: world clock/timeや保存timestampを対象バージョンの機能に合わせて検討する
 
 ## 状態機械
 
@@ -164,7 +164,7 @@ scoreboard players add #queue_size example.meta 1
 advancement revoke @s only example:internal/trade
 ```
 
-この例では、初期化時に割り当てた一意な `example.id` scoreをplayer参照に使います。entity NBTのUUID field名を版をまたいで固定しません。ID採番時は重複防止とoffline playerの保持方針を別途定義します。
+この例では、初期化時に割り当てた一意な `example.id` scoreをplayer参照に使います。entity NBTのUUID field名をバージョンをまたいで固定しません。ID採番時は重複防止とoffline playerの保持方針を別途定義します。
 
 processor:
 
@@ -285,7 +285,7 @@ execute unless score #ok example.tmp matches 1 run tellraw @a[tag=example.admin]
 - storageの大きなlistを毎tickcopyしていないか
 - particle/sound/network effectの送信数
 
-`/debug`, profiler、tick command等の利用可否は対象版とserver環境に合わせます。開発worldで最悪入力を作り、平均ではなく上限を測ります。
+`/debug`, profiler、tick command等の利用可否は対象バージョンとserver環境に合わせます。開発worldで最悪入力を作り、平均ではなく上限を測ります。
 
 ## test pyramid
 
@@ -293,7 +293,7 @@ execute unless score #ok example.tmp matches 1 run tellraw @a[tag=example.admin]
 
 - JSON parse
 - path/namespace
-- 対象版directory
+- 対象バージョンのdirectory
 - resource参照
 - command graphとの一致
 
@@ -335,7 +335,7 @@ execute unless score #ok example.tmp matches 1 run tellraw @a[tag=example.admin]
 [ ] event再入と途中失敗を扱った
 [ ] APIの入力・result・副作用を定義した
 [ ] reset/uninstall/migrationをtestした
-[ ] 対応する全正式版でreloadした
+[ ] 対応する全正式リリースでreloadした
 ```
 
 ## 参照
