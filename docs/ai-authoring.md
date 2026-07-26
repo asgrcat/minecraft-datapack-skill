@@ -17,7 +17,7 @@ python3 <harness-root>/tools/datapack_harness.py \
 ```
 
 - `target_version`、`namespace`、`pack_root`、対応範囲、experimental許可、server type、要求検証level、cache/report pathを会話だけに保持しない
-- 省略された任意fieldにはproject schemaの既定値を適用する。必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level`
+- 省略された任意fieldにはハーネスの既定値を適用する。必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level`
 - 実装要件はproject設定とは別に管理する
 - `edition` は `java` だけを受け付ける
 - versionは [`versions/README.md`](versions/README.md) の正式版IDに完全一致させる
