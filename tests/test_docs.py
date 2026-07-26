@@ -22,6 +22,12 @@ def public_markdown_files() -> list[Path]:
 
 
 class DocumentationTests(unittest.TestCase):
+    def test_agent_guides_match(self) -> None:
+        self.assertEqual(
+            (ROOT / "AGENTS.md").read_text(encoding="utf-8"),
+            (ROOT / "CLAUDE.md").read_text(encoding="utf-8"),
+        )
+
     def test_local_markdown_links_exist(self) -> None:
         missing: list[str] = []
         for markdown in public_markdown_files():

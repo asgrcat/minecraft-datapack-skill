@@ -33,7 +33,7 @@ tools/
 tests/
 ```
 
-一部だけをcopyするとprofile schema、project schema、文書リンク、テストが一致しなくなるため、上記を一つの配布単位として扱います。保守用の `.github/` と `AGENTS.md` は必須配布物ではありません。
+一部だけをcopyするとprofile schema、project schema、文書リンク、テストが一致しなくなるため、上記を一つの配布単位として扱います。保守用の `.github/`、`AGENTS.md`、`CLAUDE.md` は必須配布物ではありません。
 
 ## 推奨配置
 

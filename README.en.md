@@ -33,7 +33,7 @@ tools/
 tests/
 ```
 
-Treat these paths as one distribution unit. Copying only part of the repository can leave the profile schema, project schema, documentation links, and tests out of sync. The maintenance-only `.github/` directory and `AGENTS.md` are not required distribution files.
+Treat these paths as one distribution unit. Copying only part of the repository can leave the profile schema, project schema, documentation links, and tests out of sync. The maintenance-only `.github/` directory, `AGENTS.md`, and `CLAUDE.md` are not required distribution files.
 
 ## Recommended layout
 
