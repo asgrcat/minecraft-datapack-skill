@@ -70,6 +70,19 @@ class HarnessError(RuntimeError):
     """Expected command-line failure."""
 
 
+class ServerTestError(HarnessError):
+    """Server-test failure with the collected disposable-server log."""
+
+    def __init__(self, message: str, log: str) -> None:
+        super().__init__(message)
+        self.log = append_harness_error(log, message)
+
+
+def append_harness_error(log: str, message: str) -> str:
+    separator = "" if not log or log.endswith("\n") else "\n"
+    return f"{log}{separator}[HARNESS] ERROR: {message}\n"
+
+
 def load_profile_schema() -> dict[str, Any]:
     try:
         return json.loads(PROFILE_SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -731,7 +744,14 @@ def validate_pack(
     supports_line_continuation = supports_macro
     for path in function_files:
         relative = path.relative_to(pack_root)
-        text = path.read_text(encoding="utf-8")
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            result.error(f"{relative}: invalid UTF-8: {error}")
+            continue
+        if text.startswith("\ufeff"):
+            result.error(f"{relative}: UTF-8 BOM is not allowed")
+            continue
         if not supports_line_continuation:
             for number, physical in enumerate(text.splitlines(), start=1):
                 stripped = physical.rstrip()
@@ -783,7 +803,10 @@ def validate_pack(
     if registry_ids:
         unknown: set[str] = set()
         for json_path in sorted(pack_root.rglob("*.json")):
-            text = json_path.read_text(encoding="utf-8")
+            try:
+                text = json_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
             for identifier in RESOURCE_LOCATION_SCAN.findall(text):
                 if (
                     identifier.startswith("minecraft:")
@@ -930,6 +953,7 @@ def server_test(
 
         reader = threading.Thread(target=read_output, daemon=True)
         reader.start()
+        interaction_error: Exception | None = None
         try:
             if not started.wait(timeout):
                 raise HarnessError(f"server did not finish startup within {timeout}s")
@@ -978,6 +1002,8 @@ def server_test(
 
             send_command("stop")
             process.wait(timeout=timeout)
+        except (HarnessError, OSError, subprocess.SubprocessError) as error:
+            interaction_error = error
         finally:
             if process.poll() is None:
                 process.terminate()
@@ -988,10 +1014,18 @@ def server_test(
             reader.join(timeout=2)
 
         log = "".join(output)
+        if interaction_error is not None:
+            raise ServerTestError(str(interaction_error), log) from interaction_error
         failures = server_log_errors(log)
         if process.returncode != 0:
             failures.append(f"server exit {process.returncode}")
-        return (1 if failures else 0), log
+        if failures:
+            log = append_harness_error(
+                log,
+                "server log/process failure(s): " + ", ".join(failures),
+            )
+            return 1, log
+        return 0, log
 
 
 def print_validation(result: ValidationResult) -> int:
@@ -1103,15 +1137,19 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
         if args.command == "server-test":
-            status, log = server_test(
-                args.version,
-                args.pack,
-                args.java,
-                args.cache_dir,
-                args.timeout,
-                args.accept_eula,
-                args.expect_log,
-            )
+            try:
+                status, log = server_test(
+                    args.version,
+                    args.pack,
+                    args.java,
+                    args.cache_dir,
+                    args.timeout,
+                    args.accept_eula,
+                    args.expect_log,
+                )
+            except ServerTestError as error:
+                print(f"ERROR: {error}", file=sys.stderr)
+                status, log = 1, error.log
             if args.log:
                 args.log.parent.mkdir(parents=True, exist_ok=True)
                 args.log.write_text(log, encoding="utf-8")

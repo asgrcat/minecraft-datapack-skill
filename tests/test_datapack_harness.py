@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import hashlib
+import io
 import json
 import queue
 import sys
@@ -239,6 +241,94 @@ class PackValidationTests(unittest.TestCase):
                 )
             )
 
+    def test_function_encoding_errors_do_not_abort_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            pack = Path(temporary)
+            self.make_pack(
+                pack,
+                {"pack": {"pack_format": 41, "description": "test"}},
+            )
+            functions = pack / "data" / "example" / "functions"
+            functions.mkdir(parents=True)
+            (functions / "invalid.mcfunction").write_bytes(b"say ok\n\xff\n")
+            (functions / "other.mcfunction").write_text(
+                "function example:missing\n",
+                encoding="utf-8",
+            )
+            result = HARNESS.validate_pack(
+                "1.20.6",
+                pack,
+                None,
+                self.profiles,
+            )
+            self.assertTrue(
+                any("invalid.mcfunction: invalid UTF-8" in error for error in result.errors)
+            )
+            self.assertTrue(
+                any("missing local function example:missing" in error for error in result.errors)
+            )
+
+    def test_empty_function_is_valid_but_utf8_bom_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            pack = Path(temporary)
+            self.make_pack(
+                pack,
+                {"pack": {"pack_format": 41, "description": "test"}},
+            )
+            functions = pack / "data" / "example" / "functions"
+            functions.mkdir(parents=True)
+            (functions / "empty.mcfunction").write_bytes(b"")
+            (functions / "bom.mcfunction").write_bytes(
+                b"\xef\xbb\xbfsay loaded\n"
+            )
+            result = HARNESS.validate_pack(
+                "1.20.6",
+                pack,
+                None,
+                self.profiles,
+            )
+            self.assertEqual(
+                1,
+                sum("UTF-8 BOM is not allowed" in error for error in result.errors),
+            )
+            self.assertFalse(
+                any("empty.mcfunction" in error for error in result.errors)
+            )
+
+    def test_invalid_utf8_json_with_reports_is_a_validation_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            pack = root / "pack"
+            pack.mkdir()
+            self.make_pack(
+                pack,
+                {"pack": {"pack_format": 41, "description": "test"}},
+            )
+            invalid = pack / "data" / "example" / "predicates" / "invalid.json"
+            invalid.parent.mkdir(parents=True)
+            invalid.write_bytes(b'{"condition":"minecraft:random_chance",\xff}')
+
+            reports = root / "generated" / "reports"
+            reports.mkdir(parents=True)
+            (reports / "commands.json").write_text(
+                '{"children":{}}',
+                encoding="utf-8",
+            )
+            (reports / "registries.json").write_text("{}", encoding="utf-8")
+
+            result = HARNESS.validate_pack(
+                "1.20.6",
+                pack,
+                root / "generated",
+                self.profiles,
+            )
+            self.assertTrue(
+                any(
+                    "invalid.json: invalid JSON" in error
+                    for error in result.errors
+                )
+            )
+
     def test_missing_local_function_is_error(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             pack = Path(temporary)
@@ -470,12 +560,36 @@ class ServerLogTests(unittest.TestCase):
                 self.assertTrue(HARNESS.server_log_errors(message))
 
     def test_positive_server_markers_are_recognized(self) -> None:
-        enabled = (
-            "There are 2 data pack(s) enabled: "
-            "[vanilla (built-in)], [file/pack-under-test (world)]"
-        )
-        self.assertTrue(HARNESS.enabled_list_completed(enabled))
-        self.assertTrue(HARNESS.tested_pack_is_enabled(enabled))
+        boundary_cases = {
+            "1.13": (
+                "There are 2 data packs enabled: "
+                "[vanilla], [file/pack-under-test]"
+            ),
+            "1.17": (
+                "There are 2 data packs enabled: "
+                "[vanilla], [file/pack-under-test]"
+            ),
+            "1.18": (
+                "There are 2 data pack(s) enabled: "
+                "[vanilla (built-in)], [file/pack-under-test (world)]"
+            ),
+            "1.20.5": (
+                "There are 2 data pack(s) enabled: "
+                "[vanilla (built-in)], [file/pack-under-test (world)]"
+            ),
+            "1.21.9": (
+                "There are 2 data pack(s) enabled: "
+                "[vanilla (built-in)], [file/pack-under-test (world)]"
+            ),
+            "26.2": (
+                "There are 2 data pack(s) enabled: "
+                "[vanilla (built-in)], [file/pack-under-test (world)]"
+            ),
+        }
+        for version, enabled in boundary_cases.items():
+            with self.subTest(version=version):
+                self.assertTrue(HARNESS.enabled_list_completed(enabled))
+                self.assertTrue(HARNESS.tested_pack_is_enabled(enabled))
         self.assertFalse(
             HARNESS.tested_pack_is_enabled(
                 "There are 1 data pack(s) enabled: [vanilla (built-in)]"
@@ -486,11 +600,22 @@ class ServerLogTests(unittest.TestCase):
 
     def test_server_test_checks_enabled_pack_before_and_after_reload(self) -> None:
         class FakeProcess:
-            def __init__(self) -> None:
+            def __init__(
+                self,
+                *,
+                pack_enabled: bool = True,
+                reload_lines: tuple[str, ...] | None = None,
+            ) -> None:
                 self.returncode: int | None = None
                 self.lines: queue.Queue[str | None] = queue.Queue()
                 self.lines.put('[Server thread/INFO]: Done (1.0s)! For help, type "help"\n')
                 self.commands: list[str] = []
+                self.pack_enabled = pack_enabled
+                self.reload_lines = reload_lines or (
+                    "Reloading!\n",
+                    "[Server thread/INFO]: PACK_TEST_LOAD_OK\n",
+                    "Loaded 1250 advancements\n",
+                )
                 self.stdout = self
                 self.stdin = self
 
@@ -505,15 +630,20 @@ class ServerLogTests(unittest.TestCase):
                 for command in text.splitlines():
                     self.commands.append(command)
                     if command == "datapack list enabled":
-                        self.lines.put(
-                            "There are 2 data pack(s) enabled: "
-                            "[vanilla (built-in)], "
-                            "[file/pack-under-test (world)]\n"
-                        )
+                        if self.pack_enabled:
+                            self.lines.put(
+                                "There are 2 data pack(s) enabled: "
+                                "[vanilla (built-in)], "
+                                "[file/pack-under-test (world)]\n"
+                            )
+                        else:
+                            self.lines.put(
+                                "There are 1 data pack(s) enabled: "
+                                "[vanilla (built-in)]\n"
+                            )
                     elif command == "reload":
-                        self.lines.put("Reloading!\n")
-                        self.lines.put("[Server thread/INFO]: PACK_TEST_LOAD_OK\n")
-                        self.lines.put("Loaded 1250 advancements\n")
+                        for line in self.reload_lines:
+                            self.lines.put(line)
                     elif command == "stop":
                         self.returncode = 0
                         self.lines.put("Stopping server\n")
@@ -579,6 +709,116 @@ class ServerLogTests(unittest.TestCase):
             ],
             process.commands,
         )
+
+        failed_process = FakeProcess(pack_enabled=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            pack = root / "pack"
+            pack.mkdir()
+            jar = root / "server.jar"
+            jar.write_bytes(b"jar")
+            with (
+                mock.patch.object(
+                    HARNESS,
+                    "fetch_release",
+                    return_value=(jar, {}),
+                ),
+                mock.patch.object(
+                    HARNESS.subprocess,
+                    "Popen",
+                    return_value=failed_process,
+                ),
+            ):
+                with self.assertRaises(HARNESS.ServerTestError) as raised:
+                    HARNESS.server_test(
+                        "1.20.5",
+                        pack,
+                        "java",
+                        root / "cache",
+                        2,
+                        True,
+                    )
+
+        self.assertIn("Done (1.0s)", raised.exception.log)
+        self.assertIn(
+            "file/pack-under-test is absent",
+            raised.exception.log,
+        )
+
+        failure_cases = (
+            (
+                FakeProcess(reload_lines=("Reloading!\n",)),
+                0.05,
+                "reload completion",
+            ),
+            (
+                FakeProcess(
+                    reload_lines=(
+                        "Reloading!\n",
+                        "Couldn't load function example:test\n",
+                    )
+                ),
+                2,
+                "couldn't load",
+            ),
+        )
+        for failed_process, timeout, expected in failure_cases:
+            with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                pack = root / "pack"
+                pack.mkdir()
+                jar = root / "server.jar"
+                jar.write_bytes(b"jar")
+                with (
+                    mock.patch.object(
+                        HARNESS,
+                        "fetch_release",
+                        return_value=(jar, {}),
+                    ),
+                    mock.patch.object(
+                        HARNESS.subprocess,
+                        "Popen",
+                        return_value=failed_process,
+                    ),
+                ):
+                    with self.assertRaises(HARNESS.ServerTestError) as raised:
+                        HARNESS.server_test(
+                            "1.20.5",
+                            pack,
+                            "java",
+                            root / "cache",
+                            timeout,
+                            True,
+                        )
+                self.assertIn(expected, raised.exception.log.lower())
+
+    def test_main_saves_server_log_when_server_test_raises(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            log_path = Path(temporary) / "nested" / "server.log"
+            error = HARNESS.ServerTestError(
+                "reload completion timed out",
+                "Reloading!\npartial server output\n",
+            )
+            with mock.patch.object(
+                HARNESS,
+                "server_test",
+                side_effect=error,
+            ), contextlib.redirect_stderr(io.StringIO()):
+                status = HARNESS.main(
+                    [
+                        "server-test",
+                        "1.20.5",
+                        "unused-pack",
+                        "--accept-eula",
+                        "--log",
+                        str(log_path),
+                    ]
+                )
+
+            self.assertEqual(1, status)
+            self.assertEqual(error.log, log_path.read_text(encoding="utf-8"))
+            self.assertIn("partial server output", error.log)
+            self.assertIn("reload completion timed out", error.log)
 
 
 if __name__ == "__main__":

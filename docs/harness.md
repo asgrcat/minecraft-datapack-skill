@@ -98,6 +98,7 @@ python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
 
 - `pack.mcmeta` のtop-level object、JSON、対象format包含
 - 全 `.json` のUTF-8/JSON構文
+- 全 `.mcfunction` のUTF-8。BOMと不正byte列を拒否し、他fileの検査は継続
 - namespace/resource pathの文字
 - plural/singular data directory
 - function tag directory
@@ -142,7 +143,26 @@ python3 tools/datapack_harness.py server-test 1.20.5 path/to/pack \
 
 `--expect-log` は任意かつ複数指定可能です。packの `minecraft:load` entry pointから一意な文字列をconsoleへ出すテスト用functionを用意し、その文字列を指定すると、reload区間内での実行も肯定的に確認できます。指定しない場合、ハーネスが保証するのはpackの有効化、reload完了、既知load error不在までであり、任意のentry point実行までは保証しません。
 
+`--log` を指定した場合、pack未有効、reload timeout、load errorなどで検査が失敗しても、終了までに収集したserver出力と `[HARNESS] ERROR` の失敗理由を保存します。一時server directoryが削除された後も診断に利用できます。
+
 server検査は一時worldを使用します。既存worldをupgradeしません。旧world migration testは、利用者が複製した専用worldで別に行います。
+
+### 境界版integration matrix
+
+通常CIのunit testでは、旧形式と現行形式の代表的なenabled一覧、reload開始・完了、失敗logをparserへ入力します。これは実serverの起動確認ではありません。
+
+release前には、EULAへ同意できる隔離環境で版ごとに正しい最小packとJDKを用意し、次を実行します。
+
+| 正式版 | Java | 確認する境界 |
+|---|---:|---|
+| 1.13 | 8 | 最古版、複数形folder |
+| 1.17 | 16 | Java 16 |
+| 1.18 | 17 | bundler起動 |
+| 1.20.5 | 21 | item component |
+| 1.21.9 | 21 | minor pack format metadata |
+| 26.2 | 25 | 最新対応版 |
+
+各版で `--expect-log` を指定し、成功logを保存します。実行していない版について「server-test互換性確認済み」と記録しません。
 
 ## 保証レベル
 
