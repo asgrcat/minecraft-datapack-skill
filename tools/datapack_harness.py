@@ -635,6 +635,24 @@ def valid_project_relative_path(value: Any) -> bool:
     return not path.is_absolute() and all(part not in {"", ".", ".."} for part in path.parts)
 
 
+def normalize_project_config(config: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(config)
+    target = normalized.get("target_version")
+    normalized.setdefault("edition", "java")
+    normalized.setdefault(
+        "supported_versions",
+        {"min": target, "max": target},
+    )
+    normalized.setdefault("experimental_features", False)
+    normalized.setdefault("server_type", "vanilla")
+    normalized.setdefault("cache_dir", ".cache/minecraft")
+    normalized.setdefault(
+        "report_dir",
+        f"build/minecraft/{target}/generated",
+    )
+    return normalized
+
+
 def validate_project_config(
     project_path: Path,
     profiles: dict[str, dict[str, Any]],
@@ -655,6 +673,8 @@ def validate_project_config(
         result.error(
             f"{project_path}: unknown fields: {', '.join(sorted(unknown))}"
         )
+
+    config = normalize_project_config(config)
 
     if config.get("schema_version") != 1 or isinstance(
         config.get("schema_version"), bool
@@ -691,42 +711,37 @@ def validate_project_config(
         )
 
     harness = config.get("harness")
-    if not isinstance(harness, dict):
+    if "harness" in config and not isinstance(harness, dict):
         result.error(f"{project_path}: harness must be an object")
-    else:
+    elif isinstance(harness, dict):
         harness_fields = {"version", "source", "commit"}
-        missing_harness = harness_fields - set(harness)
         unknown_harness = set(harness) - harness_fields
-        if missing_harness:
-            result.error(
-                f"{project_path}: harness missing fields: "
-                f"{', '.join(sorted(missing_harness))}"
-            )
         if unknown_harness:
             result.error(
                 f"{project_path}: harness unknown fields: "
                 f"{', '.join(sorted(unknown_harness))}"
             )
         version = harness.get("version")
-        if version != HARNESS_VERSION:
+        if "version" in harness and version != HARNESS_VERSION:
             result.error(
                 f"{project_path}: harness.version {version!r} does not match "
                 f"installed VERSION {HARNESS_VERSION!r}"
             )
         source = harness.get("source")
-        if not isinstance(source, str) or not source.strip():
+        if "source" in harness and (
+            not isinstance(source, str) or not source.strip()
+        ):
             result.error(f"{project_path}: harness.source must be a non-empty string")
         commit = harness.get("commit")
-        if commit is None:
-            result.warn(
-                f"{project_path}: harness.commit is not pinned to a full SHA"
-            )
-        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        if "commit" in harness and commit is not None and (
+            not isinstance(commit, str)
+            or not re.fullmatch(r"[0-9a-f]{40}", commit)
+        ):
             result.error(
                 f"{project_path}: harness.commit must be null or a 40-character "
                 "lowercase SHA"
             )
-        else:
+        elif isinstance(commit, str):
             installed_commit = installed_git_commit()
             if installed_commit is not None and commit != installed_commit:
                 result.error(
@@ -775,7 +790,7 @@ def validate_project_config(
                 )
 
     schema_reference = config.get("$schema")
-    if schema_reference is not None and not isinstance(schema_reference, str):
+    if "$schema" in config and not isinstance(schema_reference, str):
         result.error(f"{project_path}: $schema must be a string")
 
     return config, result

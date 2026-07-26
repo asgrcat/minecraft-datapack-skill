@@ -2,7 +2,6 @@ name: datapack-harness
 
 on:
   pull_request:
-  push:
 
 permissions:
   contents: read
@@ -16,18 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Check harness profiles
-        run: python "$DATAPACK_HARNESS_ROOT/tools/datapack_harness.py" profiles
-      - name: Check project configuration
-        run: >-
-          python "$DATAPACK_HARNESS_ROOT/tools/datapack_harness.py"
-          project-check --project "$DATAPACK_PROJECT"
-      - name: Validate generated pack statically
+      - name: Validate data pack statically
         run: >-
           python "$DATAPACK_HARNESS_ROOT/tools/datapack_harness.py"
           validate-project --project "$DATAPACK_PROJECT"

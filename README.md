@@ -77,7 +77,7 @@ git subtree add \
 
 ### Release archiveまたはcopy
 
-Git連携を持たせない場合は、同一tagまたはfull commitのarchiveから配布単位をまとめてcopyします。`LICENSE`を削除せず、導入元のtag/full commitを `datapack-project.json` に記録します。
+Git連携を持たせない場合は、同一tagまたはfull commitのarchiveから配布単位をまとめてcopyします。`LICENSE`を削除せず、取得元のtag/full commitを導入記録に残します。
 
 公開release/tagがないrevisionはfull commit SHAで固定します。移動するbranch名だけで導入版を記録しません。
 
@@ -85,10 +85,20 @@ Git連携を持たせない場合は、同一tagまたはfull commitのarchive�
 
 1. [`templates/datapack-project.json`](templates/datapack-project.json) を利用者repository rootへcopyする
 2. `target_version`、`namespace`、`pack_root`、要求する `validation_level` を編集する。配置先が既定と異なる場合は `$schema` も実際の `<harness-root>` に合わせる
-3. `harness.commit` に導入したfull commit SHAを記録する。archive作成前等で未確定なら一時的に `null` とし、`project-check` のwarningを解消してから固定する
-4. [`templates/AGENTS.snippet.md`](templates/AGENTS.snippet.md) を利用者側の `AGENTS.md` 等へ追記し、`<harness-root>` を実際のpathへ置換する
+3. [`templates/AGENTS.snippet.md`](templates/AGENTS.snippet.md) を利用者側の `AGENTS.md` 等へ追記し、`<harness-root>` を実際のpathへ置換する
 
-submodule等で `<harness-root>/.git` が存在する場合、`project-check` は記録したfull commit SHAと実際のcheckoutも照合します。archive/copyではgit metadataがないため、記録値の形式と `VERSION` の一致までを検査します。
+project設定の必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` の5つです。省略時は次の値を使います。
+
+| field | 既定値 |
+|---|---|
+| `edition` | `java` |
+| `supported_versions.min` / `.max` | `target_version` |
+| `experimental_features` | `false` |
+| `server_type` | `vanilla` |
+| `cache_dir` | `.cache/minecraft` |
+| `report_dir` | `build/minecraft/<target_version>/generated` |
+
+導入済みハーネスの版は `<harness-root>/VERSION` で確認します。submoduleは利用者repositoryのgitlink、subtreeは取り込んだ履歴、archive/copyは取得記録でrevisionを固定します。archive情報等をproject fileにも残したい場合だけ、`harness.version`、`harness.source`、`harness.commit` を任意で追加できます。
 
 health check:
 
@@ -100,7 +110,7 @@ python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
   project-check --project datapack-project.json
 ```
 
-どちらもnetwork、Java、EULA同意を必要としません。
+いずれもnetwork、Java、EULA同意を必要としません。
 
 ## AIへ実装を任せる流れ
 
@@ -129,11 +139,20 @@ python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
 
 `static` で完了するprojectは正常な利用形態です。`server` と `functional` は利用者が必要性、EULA、本番影響を判断して明示実行します。
 
+`generated` levelの自動化は整備中です。配布するconsumer CI templateの最小保証は `static` とし、生成だけをCI成功条件にはしません。
+
 ## CI
 
 [`templates/github/workflows/datapack-harness.yml`](templates/github/workflows/datapack-harness.yml) を利用者repositoryの `.github/workflows/` へcopyします。
 
-`DATAPACK_HARNESS_ROOT` と `DATAPACK_PROJECT` の2値を実際の配置へ合わせます。通常CIはprofile、project設定、静的検査だけを行い、JAR downloadやserver起動を暗黙に実行しません。
+`DATAPACK_HARNESS_ROOT` と `DATAPACK_PROJECT` の2値を実際の配置へ合わせます。templateはpull requestで `validate-project` を1回実行し、project設定とpackの静的検査をまとめて行います。JAR downloadやserver起動を暗黙に実行しません。
+
+templateはsubmoduleを前提にしません。ハーネスをsubmoduleで導入したrepositoryだけ、checkout stepへ次を追加します。
+
+```yaml
+with:
+  submodules: recursive
+```
 
 ## 更新
 
@@ -145,8 +164,8 @@ python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
 
 更新後:
 
-1. `VERSION` と `datapack-project.json` の `harness.version` を一致させる
-2. `harness.commit` を新しいfull commit SHAへ更新する
+1. `<harness-root>/VERSION` と導入方法が固定するtag/full commitを確認する
+2. 任意の `harness` metadataを使用している場合はその値も更新する
 3. `profiles`、`project-check`、ハーネスのunit testを実行する
 4. 生成済みpackへ要求levelの検証を再実行する
 

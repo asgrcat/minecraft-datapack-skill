@@ -6,7 +6,9 @@ MinecraftのBrigadierとcodecを再実装しません。静的に確定できな
 
 ## 0. project設定
 
-利用者repositoryの `datapack-project.json` に対象版、namespace、pack root、対応範囲、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
+利用者repositoryの `datapack-project.json` に対象版、namespace、pack root、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
+
+必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` です。対応範囲は省略すると対象版だけ、editionはJava、experimentalは無効、server typeはvanillaになります。cacheは `.cache/minecraft`、reportは `build/minecraft/<target_version>/generated` を使います。配布元のversion/source/commitをprojectにも残す場合は、任意の `harness` objectを追加できます。導入済みの版の正本は `VERSION` です。
 
 ```bash
 python3 <harness-root>/tools/datapack_harness.py \
@@ -134,6 +136,8 @@ python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
 - zip packは静的検査前に展開する
 
 これらはwarningとして残します。要求levelが `static` ならwarningと未検査範囲を報告して完了できます。`server` 以上を要求する場合だけ、次のserver検査を追加します。
+
+consumer CIの最小levelは `static` です。`generated` levelの自動化は整備中であり、生成だけをCI成功の証拠にはしません。
 
 ## 6. server起動とreload
 

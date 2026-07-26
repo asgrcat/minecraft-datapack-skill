@@ -4,7 +4,9 @@
 
 ## Unreleased
 
-- なし
+- project設定を必須5 fieldへ簡素化し、版依存pathを含む既定値を追加
+- 配布元metadataを任意化し、導入済みversionの正本を `VERSION` に統一
+- consumer CI templateをpull request時の静的検査1回へ簡素化
 
 ## 0.1.0
 

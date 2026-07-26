@@ -60,13 +60,31 @@ class ProjectConfigurationTests(unittest.TestCase):
         )
         config = template_config()
         self.assertEqual(1, schema["properties"]["schema_version"]["const"])
-        self.assertEqual(HARNESS.HARNESS_VERSION, config["harness"]["version"])
+        self.assertEqual(
+            {
+                "schema_version",
+                "target_version",
+                "namespace",
+                "pack_root",
+                "validation_level",
+            },
+            set(schema["required"]),
+        )
+        self.assertNotIn("harness", config)
         self.assertEqual(
             {"generated", "static", "server", "functional"},
             set(HARNESS.VALIDATION_LEVELS),
         )
 
-    def test_template_passes_with_unpinned_commit_warning(self) -> None:
+    def test_consumer_workflow_is_static_and_installation_agnostic(self) -> None:
+        workflow = (
+            ROOT / "templates" / "github" / "workflows" / "datapack-harness.yml"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(1, workflow.count("datapack_harness.py"))
+        self.assertIn("validate-project", workflow)
+        self.assertNotIn("submodules:", workflow)
+
+    def test_minimal_template_passes_and_applies_defaults(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             project = self.write_project(Path(temporary), template_config())
             config, result = HARNESS.validate_project_config(
@@ -75,20 +93,35 @@ class ProjectConfigurationTests(unittest.TestCase):
             )
         self.assertIsNotNone(config)
         self.assertEqual([], result.errors)
-        self.assertTrue(
-            any("not pinned" in warning for warning in result.warnings)
+        self.assertEqual([], result.warnings)
+        self.assertEqual("java", config["edition"])
+        self.assertEqual(
+            {"min": "1.20.5", "max": "1.20.5"},
+            config["supported_versions"],
+        )
+        self.assertFalse(config["experimental_features"])
+        self.assertEqual("vanilla", config["server_type"])
+        self.assertEqual(".cache/minecraft", config["cache_dir"])
+        self.assertEqual(
+            "build/minecraft/1.20.5/generated",
+            config["report_dir"],
         )
 
-    def test_pinned_project_passes_without_warnings(self) -> None:
+    def test_optional_provenance_passes_without_warnings(self) -> None:
         config = template_config()
-        config["harness"]["commit"] = installed_or_archive_commit()
+        config["harness"] = {
+            "version": HARNESS.HARNESS_VERSION,
+            "source": "https://github.com/asgrcat/mc-datapack-docs",
+            "commit": installed_or_archive_commit(),
+        }
         with tempfile.TemporaryDirectory() as temporary:
             project = self.write_project(Path(temporary), config)
             loaded, result = HARNESS.validate_project_config(
                 project,
                 self.profiles,
             )
-        self.assertEqual(config, loaded)
+        self.assertIsNotNone(loaded)
+        self.assertEqual(config["harness"], loaded["harness"])
         self.assertEqual([], result.errors)
         self.assertEqual([], result.warnings)
 
@@ -97,9 +130,9 @@ class ProjectConfigurationTests(unittest.TestCase):
         if installed is None:
             self.skipTest("archive/copy layout has no harness-local git metadata")
         config = template_config()
-        config["harness"]["commit"] = (
-            "0" * 40 if installed != "0" * 40 else "1" * 40
-        )
+        config["harness"] = {
+            "commit": "0" * 40 if installed != "0" * 40 else "1" * 40
+        }
         with tempfile.TemporaryDirectory() as temporary:
             project = self.write_project(Path(temporary), config)
             _, result = HARNESS.validate_project_config(
@@ -116,12 +149,34 @@ class ProjectConfigurationTests(unittest.TestCase):
             "namespace": "Uppercase",
             "pack_root": "../outside",
             "validation_level": "automatic-server",
+            "edition": "bedrock",
+            "experimental_features": "false",
+            "server_type": "paper",
+            "cache_dir": "../cache",
+            "report_dir": "/tmp/reports",
         }
         for field, value in cases.items():
             with self.subTest(field=field), tempfile.TemporaryDirectory() as temporary:
                 config = template_config()
-                config["harness"]["commit"] = installed_or_archive_commit()
                 config[field] = value
+                project = self.write_project(Path(temporary), config)
+                _, result = HARNESS.validate_project_config(
+                    project,
+                    self.profiles,
+                )
+                self.assertTrue(result.errors)
+
+    def test_unknown_and_invalid_optional_fields_fail_closed(self) -> None:
+        cases = (
+            {"unexpected": True},
+            {"harness": {"unexpected": True}},
+            {"harness": None},
+            {"$schema": None},
+        )
+        for additions in cases:
+            with self.subTest(additions=additions), tempfile.TemporaryDirectory() as temporary:
+                config = template_config()
+                config.update(additions)
                 project = self.write_project(Path(temporary), config)
                 _, result = HARNESS.validate_project_config(
                     project,
@@ -131,7 +186,6 @@ class ProjectConfigurationTests(unittest.TestCase):
 
     def test_target_must_be_inside_supported_range(self) -> None:
         config = template_config()
-        config["harness"]["commit"] = installed_or_archive_commit()
         config["supported_versions"] = {
             "min": "1.21",
             "max": "1.21.1",
@@ -148,7 +202,6 @@ class ProjectConfigurationTests(unittest.TestCase):
 
     def test_project_check_works_from_nested_harness_layout(self) -> None:
         config = template_config()
-        config["harness"]["commit"] = installed_or_archive_commit()
         with tempfile.TemporaryDirectory() as temporary:
             project = self.write_project(Path(temporary), config)
             output = io.StringIO()
@@ -191,7 +244,6 @@ class ProjectConfigurationTests(unittest.TestCase):
 
     def test_validate_project_uses_configured_pack_root(self) -> None:
         config = template_config()
-        config["harness"]["commit"] = installed_or_archive_commit()
         config["validation_level"] = "server"
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

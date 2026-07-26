@@ -17,6 +17,7 @@ python3 <harness-root>/tools/datapack_harness.py \
 ```
 
 - `target_version`、`namespace`、`pack_root`、対応範囲、experimental許可、server type、要求検証level、cache/report pathを会話だけに保持しない
+- 省略された任意fieldにはproject schemaの既定値を適用する。必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level`
 - 実装要件はproject設定とは別に管理する
 - `edition` は `java` だけを受け付ける
 - versionは [`versions/README.md`](versions/README.md) の正式版IDに完全一致させる
@@ -172,6 +173,8 @@ project設定の `validation_level` を要求levelとします。
 | `functional` | 機能test成功 | 記録した機能testに成功した |
 
 AIは実行済みlevel、使用した対象版、残っているwarning、未実施の上位levelを明記します。`static` が要求levelなら、server検査を省略してもハーネス利用失敗ではありません。
+
+consumer CIは `static` を最小levelとします。`generated` levelの自動化は整備中のため、生成だけをCI成功として報告しません。
 
 報告形式:
 

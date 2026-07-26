@@ -6,17 +6,10 @@
   "additionalProperties": false,
   "required": [
     "schema_version",
-    "harness",
-    "edition",
     "target_version",
     "namespace",
     "pack_root",
-    "supported_versions",
-    "experimental_features",
-    "server_type",
-    "validation_level",
-    "cache_dir",
-    "report_dir"
+    "validation_level"
   ],
   "properties": {
     "$schema": {
@@ -28,11 +21,7 @@
     "harness": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "version",
-        "source",
-        "commit"
-      ],
+      "description": "Optional provenance metadata. The installed VERSION and the installation method remain authoritative.",
       "properties": {
         "version": {
           "type": "string",
@@ -52,7 +41,8 @@
       }
     },
     "edition": {
-      "const": "java"
+      "const": "java",
+      "default": "java"
     },
     "target_version": {
       "type": "string"
@@ -67,6 +57,7 @@
     },
     "supported_versions": {
       "type": "object",
+      "description": "Defaults to target_version for both min and max.",
       "additionalProperties": false,
       "required": [
         "min",
@@ -82,12 +73,14 @@
       }
     },
     "experimental_features": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "server_type": {
       "enum": [
         "vanilla"
-      ]
+      ],
+      "default": "vanilla"
     },
     "validation_level": {
       "enum": [
@@ -99,11 +92,13 @@
     },
     "cache_dir": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "default": ".cache/minecraft"
     },
     "report_dir": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Defaults to build/minecraft/<target_version>/generated."
     }
   }
 }
