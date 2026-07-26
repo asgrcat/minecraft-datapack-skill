@@ -14,7 +14,10 @@ MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 def public_markdown_files() -> list[Path]:
     files = list(DOCS.rglob("*.md"))
     files.extend((ROOT / "templates").rglob("*.md"))
-    files.extend((ROOT / name) for name in ("README.md", "CHANGELOG.md"))
+    files.extend(
+        (ROOT / name)
+        for name in ("README.md", "README.en.md", "CHANGELOG.md")
+    )
     return sorted(files)
 
 

@@ -10,6 +10,7 @@
 - AI向けの日常生成手順から重複するprofile単独検査を削除
 - Pythonを付属CLI利用時だけの要件として明確化
 - Minecraftのversion表記を「バージョン」「正式リリース」に統一
+- root READMEの英語版を追加
 
 ## 0.1.0
 

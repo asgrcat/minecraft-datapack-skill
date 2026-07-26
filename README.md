@@ -1,5 +1,7 @@
 # Minecraft Java Edition Data Pack Harness
 
+[日本語](README.md) | [English](README.en.md)
+
 Minecraft Java Editionの正式リリースを完全一致で解決し、AIによるデータパック実装と検証をバージョンごとに再現可能にする共通ハーネスです。
 
 仕様の入口は [`docs/README.md`](docs/README.md)、AI生成契約は [`docs/ai-authoring.md`](docs/ai-authoring.md) です。
@@ -19,6 +21,8 @@ Minecraft Java Editionの正式リリースを完全一致で解決し、AIに�
 次を同じrevisionからまとめて配置します。
 
 ```text
+README.md
+README.en.md
 VERSION
 LICENSE
 CHANGELOG.md
