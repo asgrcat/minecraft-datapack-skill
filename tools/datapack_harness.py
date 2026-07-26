@@ -21,13 +21,15 @@ import threading
 import time
 import urllib.request
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 VERSIONS_DIR = REPOSITORY_ROOT / "docs" / "versions"
 PROFILE_SCHEMA_PATH = VERSIONS_DIR / "profile.schema.json"
+PROJECT_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "datapack-project.schema.json"
+VERSION_PATH = REPOSITORY_ROOT / "VERSION"
 VERSION_MANIFEST_URL = (
     "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 )
@@ -101,6 +103,52 @@ COMPATIBILITY_CLASSES = set(
 COMPATIBILITY_TAGS = set(
     PROFILE_SCHEMA["properties"]["compatibility_tags"]["items"]["enum"]
 )
+
+
+def load_project_schema() -> dict[str, Any]:
+    try:
+        return json.loads(PROJECT_SCHEMA_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise HarnessError(f"missing schema: {PROJECT_SCHEMA_PATH}") from error
+    except json.JSONDecodeError as error:
+        raise HarnessError(f"{PROJECT_SCHEMA_PATH}: invalid JSON: {error}") from error
+
+
+def load_harness_version() -> str:
+    try:
+        version = VERSION_PATH.read_text(encoding="utf-8").strip()
+    except FileNotFoundError as error:
+        raise HarnessError(f"missing harness version: {VERSION_PATH}") from error
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise HarnessError(f"{VERSION_PATH}: expected semantic version")
+    return version
+
+
+def installed_git_commit() -> str | None:
+    if not (REPOSITORY_ROOT / ".git").exists():
+        return None
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(REPOSITORY_ROOT), "rev-parse", "HEAD"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+    commit = completed.stdout.strip()
+    if completed.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", commit):
+        return commit
+    return None
+
+
+PROJECT_SCHEMA = load_project_schema()
+PROJECT_REQUIRED = set(PROJECT_SCHEMA["required"])
+PROJECT_ALLOWED = set(PROJECT_SCHEMA["properties"])
+VALIDATION_LEVELS = tuple(
+    PROJECT_SCHEMA["properties"]["validation_level"]["enum"]
+)
+HARNESS_VERSION = load_harness_version()
 
 
 def parse_scalar(raw: str) -> Any:
@@ -560,6 +608,213 @@ class ValidationResult:
 
     def warn(self, message: str) -> None:
         self.warnings.append(message)
+
+
+def read_project_config(
+    project_path: Path,
+) -> tuple[dict[str, Any] | None, ValidationResult]:
+    result = ValidationResult()
+    try:
+        value = json.loads(project_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        result.error(f"project configuration is missing: {project_path}")
+        return None, result
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        result.error(f"{project_path}: invalid UTF-8/JSON: {error}")
+        return None, result
+    if not isinstance(value, dict):
+        result.error(f"{project_path}: top level must be an object")
+        return None, result
+    return value, result
+
+
+def valid_project_relative_path(value: Any) -> bool:
+    if not isinstance(value, str) or not value or "\\" in value:
+        return False
+    path = PurePosixPath(value)
+    return not path.is_absolute() and all(part not in {"", ".", ".."} for part in path.parts)
+
+
+def validate_project_config(
+    project_path: Path,
+    profiles: dict[str, dict[str, Any]],
+) -> tuple[dict[str, Any] | None, ValidationResult]:
+    project_path = project_path.resolve()
+    config, result = read_project_config(project_path)
+    if config is None:
+        return None, result
+
+    public = set(config)
+    missing = PROJECT_REQUIRED - public
+    unknown = public - PROJECT_ALLOWED
+    if missing:
+        result.error(
+            f"{project_path}: missing fields: {', '.join(sorted(missing))}"
+        )
+    if unknown:
+        result.error(
+            f"{project_path}: unknown fields: {', '.join(sorted(unknown))}"
+        )
+
+    if config.get("schema_version") != 1 or isinstance(
+        config.get("schema_version"), bool
+    ):
+        result.error(f"{project_path}: schema_version must be 1")
+    if config.get("edition") != "java":
+        result.error(f"{project_path}: edition must be java")
+
+    target = config.get("target_version")
+    if not isinstance(target, str) or target not in profiles:
+        result.error(f"{project_path}: unsupported target_version {target!r}")
+
+    namespace = config.get("namespace")
+    if not isinstance(namespace, str) or not re.fullmatch(
+        r"[a-z0-9_.-]+", namespace
+    ):
+        result.error(f"{project_path}: invalid namespace")
+
+    for field_name in ("pack_root", "cache_dir", "report_dir"):
+        if not valid_project_relative_path(config.get(field_name)):
+            result.error(
+                f"{project_path}: {field_name} must be a non-escaping "
+                "POSIX relative path"
+            )
+
+    if not isinstance(config.get("experimental_features"), bool):
+        result.error(f"{project_path}: experimental_features must be boolean")
+    if config.get("server_type") != "vanilla":
+        result.error(f"{project_path}: server_type must be vanilla")
+    if config.get("validation_level") not in VALIDATION_LEVELS:
+        result.error(
+            f"{project_path}: validation_level must be one of "
+            f"{', '.join(VALIDATION_LEVELS)}"
+        )
+
+    harness = config.get("harness")
+    if not isinstance(harness, dict):
+        result.error(f"{project_path}: harness must be an object")
+    else:
+        harness_fields = {"version", "source", "commit"}
+        missing_harness = harness_fields - set(harness)
+        unknown_harness = set(harness) - harness_fields
+        if missing_harness:
+            result.error(
+                f"{project_path}: harness missing fields: "
+                f"{', '.join(sorted(missing_harness))}"
+            )
+        if unknown_harness:
+            result.error(
+                f"{project_path}: harness unknown fields: "
+                f"{', '.join(sorted(unknown_harness))}"
+            )
+        version = harness.get("version")
+        if version != HARNESS_VERSION:
+            result.error(
+                f"{project_path}: harness.version {version!r} does not match "
+                f"installed VERSION {HARNESS_VERSION!r}"
+            )
+        source = harness.get("source")
+        if not isinstance(source, str) or not source.strip():
+            result.error(f"{project_path}: harness.source must be a non-empty string")
+        commit = harness.get("commit")
+        if commit is None:
+            result.warn(
+                f"{project_path}: harness.commit is not pinned to a full SHA"
+            )
+        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            result.error(
+                f"{project_path}: harness.commit must be null or a 40-character "
+                "lowercase SHA"
+            )
+        else:
+            installed_commit = installed_git_commit()
+            if installed_commit is not None and commit != installed_commit:
+                result.error(
+                    f"{project_path}: harness.commit {commit} does not match "
+                    f"installed harness commit {installed_commit}"
+                )
+
+    supported = config.get("supported_versions")
+    if not isinstance(supported, dict):
+        result.error(f"{project_path}: supported_versions must be an object")
+    else:
+        expected_supported = {"min", "max"}
+        if set(supported) != expected_supported:
+            result.error(
+                f"{project_path}: supported_versions must contain only min and max"
+            )
+        minimum = supported.get("min")
+        maximum = supported.get("max")
+        minimum_valid = isinstance(minimum, str) and minimum in profiles
+        maximum_valid = isinstance(maximum, str) and maximum in profiles
+        if not minimum_valid:
+            result.error(
+                f"{project_path}: unsupported supported_versions.min {minimum!r}"
+            )
+        if not maximum_valid:
+            result.error(
+                f"{project_path}: unsupported supported_versions.max {maximum!r}"
+            )
+        if (
+            isinstance(target, str)
+            and target in profiles
+            and minimum_valid
+            and maximum_valid
+        ):
+            order = ordered_versions(profiles)
+            min_index = order.index(minimum)
+            target_index = order.index(target)
+            max_index = order.index(maximum)
+            if min_index > max_index:
+                result.error(
+                    f"{project_path}: supported version minimum is after maximum"
+                )
+            elif not min_index <= target_index <= max_index:
+                result.error(
+                    f"{project_path}: target_version is outside supported_versions"
+                )
+
+    schema_reference = config.get("$schema")
+    if schema_reference is not None and not isinstance(schema_reference, str):
+        result.error(f"{project_path}: $schema must be a string")
+
+    return config, result
+
+
+def project_path(
+    config_path: Path,
+    config: dict[str, Any],
+    field_name: str,
+) -> Path:
+    return (config_path.resolve().parent / config[field_name]).resolve()
+
+
+def print_project_validation(
+    project_file: Path,
+    config: dict[str, Any] | None,
+    result: ValidationResult,
+) -> int:
+    for message in result.errors:
+        print(f"ERROR: {message}", file=sys.stderr)
+    for message in result.warnings:
+        print(f"WARN: {message}", file=sys.stderr)
+    if result.errors or config is None:
+        print(
+            f"project check failed: {len(result.errors)} error(s)",
+            file=sys.stderr,
+        )
+        return 1
+    payload = {
+        "project": str(project_file.resolve()),
+        "harness_version": HARNESS_VERSION,
+        "target_version": config["target_version"],
+        "namespace": config["namespace"],
+        "pack_root": str(project_path(project_file, config, "pack_root")),
+        "validation_level": config["validation_level"],
+        "warnings": len(result.warnings),
+    }
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
 
 
 def resource_id_for_file(path: Path, pack_root: Path, schema: str) -> str | None:
@@ -1042,9 +1297,39 @@ def print_validation(result: ValidationResult) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {HARNESS_VERSION}",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("profiles", help="validate all version profiles")
+
+    project_check = subparsers.add_parser(
+        "project-check",
+        help="validate a consumer datapack-project.json",
+    )
+    project_check.add_argument(
+        "--project",
+        type=Path,
+        default=Path("datapack-project.json"),
+    )
+
+    validate_project = subparsers.add_parser(
+        "validate-project",
+        help="validate the pack selected by datapack-project.json",
+    )
+    validate_project.add_argument(
+        "--project",
+        type=Path,
+        default=Path("datapack-project.json"),
+    )
+    validate_project.add_argument(
+        "--reports",
+        type=Path,
+        help="override report_dir from the project configuration",
+    )
 
     resolve = subparsers.add_parser("resolve", help="resolve one formal release profile")
     resolve.add_argument("version")
@@ -1098,6 +1383,62 @@ def main(argv: list[str] | None = None) -> int:
             order = ordered_versions(profiles)
             print(f"validated {len(order)} profiles: {order[0]} .. {order[-1]}")
             return 0
+        if args.command == "project-check":
+            config, result = validate_project_config(args.project, profiles)
+            return print_project_validation(
+                args.project,
+                config,
+                result,
+            )
+        if args.command == "validate-project":
+            config, project_result = validate_project_config(
+                args.project,
+                profiles,
+            )
+            if project_result.errors or config is None:
+                return print_project_validation(
+                    args.project,
+                    config,
+                    project_result,
+                )
+            for warning in project_result.warnings:
+                print(f"WARN: {warning}")
+            pack_root = project_path(args.project, config, "pack_root")
+            reports = args.reports
+            if reports is None:
+                configured_reports = project_path(
+                    args.project,
+                    config,
+                    "report_dir",
+                )
+                reports = configured_reports if configured_reports.is_dir() else None
+            validation = validate_pack(
+                config["target_version"],
+                pack_root,
+                reports,
+                profiles,
+            )
+            namespace_root = pack_root / "data" / config["namespace"]
+            if not namespace_root.is_dir():
+                validation.error(
+                    f"configured namespace directory is missing: "
+                    f"{namespace_root.relative_to(pack_root) if pack_root.is_dir() else namespace_root}"
+                )
+            status = print_validation(validation)
+            if status == 0:
+                requested = config["validation_level"]
+                print("completed validation level: static")
+                print(f"requested validation level: {requested}")
+                if requested in {"server", "functional"}:
+                    print(
+                        "remaining validation: "
+                        + (
+                            "server, functional"
+                            if requested == "functional"
+                            else "server"
+                        )
+                    )
+            return status
         if args.version not in profiles:
             raise HarnessError(f"unsupported formal release profile: {args.version}")
 

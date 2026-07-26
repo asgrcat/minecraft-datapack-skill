@@ -1,0 +1,22 @@
+{
+  "$schema": "tools/mc-datapack-harness/schemas/datapack-project.schema.json",
+  "schema_version": 1,
+  "harness": {
+    "version": "0.1.0",
+    "source": "https://github.com/asgrcat/mc-datapack-docs",
+    "commit": null
+  },
+  "edition": "java",
+  "target_version": "1.20.5",
+  "namespace": "example",
+  "pack_root": "datapack",
+  "supported_versions": {
+    "min": "1.20.5",
+    "max": "1.20.5"
+  },
+  "experimental_features": false,
+  "server_type": "vanilla",
+  "validation_level": "static",
+  "cache_dir": ".cache/minecraft",
+  "report_dir": "build/minecraft/1.20.5/generated"
+}

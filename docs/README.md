@@ -4,13 +4,16 @@
 
 ## 最短の使い方
 
-1. [`versions/README.md`](versions/README.md) から対象ゲーム版を選ぶ
-2. 対象版ファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
-3. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象版で利用可能と明記された構文だけを使う
-4. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
-5. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
-6. 複数版対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
-7. 対象版の公式 server JAR で [`validation.md`](validation.md) の検査を行う
+導入と更新はrepository rootの [`README.md`](../README.md) を先に読みます。
+
+1. 利用者repositoryの `datapack-project.json` を `project-check` する
+2. [`versions/README.md`](versions/README.md) から完全一致する対象ゲーム版を解決する
+3. 対象版ファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
+4. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象版で利用可能と明記された構文だけを使う
+5. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
+6. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
+7. 複数版対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
+8. project設定が要求する検証levelまで実行し、未実施の上位levelを明記する
 
 「最新の構文を古い版向けに書き戻す」より、対象版の仕様を最初から選ぶことを優先してください。`pack_format` が同じでも、コマンド、NBT、レジストリ、JSON の意味が変わる場合があります。
 
@@ -63,7 +66,7 @@ python3 tools/datapack_harness.py profiles
 python3 tools/datapack_harness.py resolve 1.20.5
 ```
 
-公式JARの取得、report生成、pack静的検査、server reloadまでの手順は [`harness.md`](harness.md) を参照してください。
+project設定、公式JARの任意取得、report生成、pack静的検査、server reloadまでの手順は [`harness.md`](harness.md) を参照してください。
 
 ## AI が対象版を決める規則
 

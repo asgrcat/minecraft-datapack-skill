@@ -11,10 +11,17 @@ DOCS = ROOT / "docs"
 MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 
+def public_markdown_files() -> list[Path]:
+    files = list(DOCS.rglob("*.md"))
+    files.extend((ROOT / "templates").rglob("*.md"))
+    files.extend((ROOT / name) for name in ("README.md", "CHANGELOG.md"))
+    return sorted(files)
+
+
 class DocumentationTests(unittest.TestCase):
     def test_local_markdown_links_exist(self) -> None:
         missing: list[str] = []
-        for markdown in DOCS.rglob("*.md"):
+        for markdown in public_markdown_files():
             text = markdown.read_text(encoding="utf-8")
             for target in MARKDOWN_LINK.findall(text):
                 if target.startswith(("http://", "https://", "#", "mailto:")):
@@ -31,7 +38,7 @@ class DocumentationTests(unittest.TestCase):
 
     def test_json_code_fences_parse(self) -> None:
         failures: list[str] = []
-        for markdown in DOCS.rglob("*.md"):
+        for markdown in public_markdown_files():
             active = False
             start = 0
             block: list[str] = []

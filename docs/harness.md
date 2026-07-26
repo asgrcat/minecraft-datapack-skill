@@ -2,7 +2,25 @@
 
 `tools/datapack_harness.py` は、正式版プロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。Python標準ライブラリだけを使用します。
 
-MinecraftのBrigadierとcodecを再実装しません。静的に確定できない項目は警告し、対象版serverでの検査へ送ります。
+MinecraftのBrigadierとcodecを再実装しません。静的に確定できない項目は警告します。server検査を行うかはproject設定の要求levelと利用者の判断で決めます。
+
+## 0. project設定
+
+利用者repositoryの `datapack-project.json` に対象版、namespace、pack root、対応範囲、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
+
+```bash
+python3 <harness-root>/tools/datapack_harness.py \
+  project-check --project datapack-project.json
+```
+
+生成済みpackを設定値で静的検査します。
+
+```bash
+python3 <harness-root>/tools/datapack_harness.py \
+  validate-project --project datapack-project.json
+```
+
+pathはproject fileのdirectoryを基準に解決します。`validate-project` は静的検査だけを実行し、要求levelが `server` または `functional` の場合は残っているlevelを表示します。JAR downloadやserver起動へ自動的に進みません。
 
 ## 1. プロファイル検査
 
@@ -115,7 +133,7 @@ python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
 - Minecraft codecの必須field・loot contextは静的に保証しない
 - zip packは静的検査前に展開する
 
-これらはwarningとして残し、server検査を完了条件にします。
+これらはwarningとして残します。要求levelが `static` ならwarningと未検査範囲を報告して完了できます。`server` 以上を要求する場合だけ、次のserver検査を追加します。
 
 ## 6. server起動とreload
 

@@ -1,30 +1,24 @@
 # AI データパック生成契約
 
-この文書は、利用者がゲーム版と要件を指定したとき、AI がどの資料をどの順で適用するかを定義します。
+この文書は、利用者repositoryのproject設定と要件から、AIがどの資料をどの順で適用するかを定義します。
 
 ## 入力
 
-必須:
+永続化するproject設定の正本は、利用者repository rootの `datapack-project.json` です。schemaとtemplateは次にあります。
 
-```yaml
-edition: java
-target_version: "1.20.5"
-requirements:
-  - "初回参加時に名前付きの剣を配る"
+- `<harness-root>/schemas/datapack-project.schema.json`
+- `<harness-root>/templates/datapack-project.json`
+
+実装前に検査します。
+
+```bash
+python3 <harness-root>/tools/datapack_harness.py \
+  project-check --project datapack-project.json
 ```
 
-必要に応じて:
-
-```yaml
-namespace: example
-supported_versions:
-  min: "1.20.5"
-  max: "1.21.1"
-experimental_features: false
-server_type: vanilla
-```
-
-- edition未指定時でも、この文書群ではJava Editionと解釈する。ただし出力に明記する
+- `target_version`、`namespace`、`pack_root`、対応範囲、experimental許可、server type、要求検証level、cache/report pathを会話だけに保持しない
+- 実装要件はproject設定とは別に管理する
+- `edition` は `java` だけを受け付ける
 - versionは [`versions/README.md`](versions/README.md) の正式版IDに完全一致させる
 - 一覧にないsnapshot/pre-release/Bedrock版を最寄り版へ丸めない
 - `26.1` を `1.26.1` に変換しない。文字列の辞書順や単純なsemver比較を使わず、version indexの順序を使う
@@ -166,17 +160,30 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 5. 1.21.9のmetadata境界をまたぐ場合、旧reader用fieldを残す条件を適用
 6. 全正式版でtestできない場合、「対応済み」と断定しない
 
-## 完了条件
+## 検証levelと報告
 
-- 対象版profileの禁止事項が0件
-- command graphに全 `.mcfunction` 行が一致
-- strict JSON parse成功
-- registry/resource reference欠落なし
-- `/reload` logにparse/codec/tag errorなし
-- load/tick/reward/schedule等のentry pointが実行される
-- 永続状態のowner、初期化、migration、cleanupが定義される
-- 追加block/entityを使う場合、観測・制御方法とデータパック単独の限界が明記される
-- 要件のfunctional testが成功
-- experimental利用とworld upgrade不可逆性を利用者へ明示
+project設定の `validation_level` を要求levelとします。
 
-これらを文書上の自己申告だけで完了扱いにしません。[`harness.md`](harness.md) のprofile解決、対象版report、静的検査、server testの終了codeと、機能test結果を記録します。
+| level | 必要な証拠 | AIが報告できること |
+|---|---|---|
+| `generated` | profile解決と全file生成 | 対象版向けに生成した |
+| `static` | `validate-project` 成功 | 静的検査に成功した |
+| `server` | exact serverでenabled/reload成功 | 対象版serverで読み込めた |
+| `functional` | 機能test成功 | 記録した機能testに成功した |
+
+AIは実行済みlevel、使用した対象版、残っているwarning、未実施の上位levelを明記します。`static` が要求levelなら、server検査を省略してもハーネス利用失敗ではありません。
+
+報告形式:
+
+```text
+target_version:
+requested_level:
+completed_level:
+evidence:
+warnings:
+not_run:
+```
+
+levelにかかわらず、永続状態のowner・初期化・migration・cleanup、experimental利用、world upgradeの不可逆性、追加block/entityの観測・制御上の限界は、該当する場合に実装説明へ含めます。
+
+`server` は利用者がEULA同意と実行環境を判断した場合だけ実行します。`functional` は実行した機能test結果だけを証拠にします。
