@@ -2,6 +2,8 @@
 
 この文書は Java Edition のデータパックから実行するコマンドを扱います。コマンドの全分岐は版ごとに変化するため、最終的な正本は対象版 server JAR が生成する `generated/reports/commands.json` です。生成方法は [`validation.md`](validation.md) を参照してください。
 
+executor、位置、分岐、function結果、load/tick/scheduleの実行意味は [`execution-model.md`](execution-model.md)、scoreboardとstorageの設計は [`state-management.md`](state-management.md) で詳しく扱います。
+
 ## `.mcfunction` の字句規則
 
 ```mcfunction
@@ -211,6 +213,8 @@ execute if function example:check run say passed
 - 1.20.3 以降、通常の function は `return` しない限り result を持たない。`execute store ... run function` の旧挙動を前提にしない
 
 ## 状態管理
+
+永続性、NBT path、migration、複数実行時の競合を含む実装は [`state-management.md`](state-management.md) を参照してください。
 
 ### scoreboard
 

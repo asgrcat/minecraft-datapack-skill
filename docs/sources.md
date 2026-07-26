@@ -17,8 +17,23 @@
 - [Minecraft Wiki: `pack.mcmeta`](https://minecraft.wiki/w/Pack.mcmeta)
 - [Minecraft Wiki: Function](https://minecraft.wiki/w/Function_(Java_Edition))
 - [Minecraft Wiki: Commands](https://minecraft.wiki/w/Commands)
+- [Minecraft Wiki: Advancement](https://minecraft.wiki/w/Advancement)
+- [Minecraft Wiki: Scoreboard](https://minecraft.wiki/w/Scoreboard)
+- [Minecraft Wiki: NBT path](https://minecraft.wiki/w/NBT_path_format)
 - [Minecraft Wiki: Creating a data pack](https://minecraft.wiki/w/Tutorial:Creating_a_data_pack)
 - [Minecraft Wiki: Running the data generator](https://minecraft.wiki/w/Tutorial:Running_the_data_generator)
+
+## gameplay要素
+
+block、entity、itemの追加情報は、対象正式版のMojang release noteを一次資料にします。データパックから利用できる入口は次の順で確定します。
+
+1. 対象版server JARのregistry/block/item reportでIDとstateを確認
+2. vanilla advancement、loot table、tag、worldgenから公式の利用例を確認
+3. release noteのvanilla挙動とdata pack technical changesを結び付ける
+4. Minecraft Wikiの個別block/entity/commandページで挙動を横断照合
+5. selector、predicate、command、GameTestを対象版で実行
+
+vanilla gameplayに存在することと、データパック用callbackが公開されていることは別です。専用advancement triggerやpredicateがないinteractionを、推測したevent名で記述しません。
 
 ## 版ページの URL
 

@@ -249,6 +249,8 @@ data/example/tags/blocks/mineable.json         # 1.20.6以前
 
 ## advancement
 
+criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復eventへの利用は [`advancements.md`](advancements.md) を参照してください。
+
 最小の trigger-only 例:
 
 ```json

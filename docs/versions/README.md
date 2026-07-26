@@ -2,6 +2,8 @@
 
 各ファイルは、その正式版でデータパックを生成するための確定プロファイルです。`inherits` を前版へ辿り、当該版の差分で上書きします。同じ data pack format でも差分を省略しないでください。
 
+追加されたblock・entity・itemを「何に使えるか」から探す場合は、版プロファイルと併せて [`../content-hooks.md`](../content-hooks.md) を参照してください。全IDは対象版server JARのregistry reportから生成します。
+
 | Java Edition | 公開日 | data pack format | folder | 互換性 |
 |---|---:|---:|---|---|
 | [1.13](1.13.md) | 2018-07-18 | 4 | 複数形 | 起点・全面破壊 |

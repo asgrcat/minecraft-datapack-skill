@@ -7,8 +7,10 @@
 1. [`versions/README.md`](versions/README.md) から対象ゲーム版を選ぶ
 2. 対象版ファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
 3. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象版で利用可能と明記された構文だけを使う
-4. 複数版対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
-5. 対象版の公式 server JAR で [`validation.md`](validation.md) の検査を行う
+4. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
+5. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
+6. 複数版対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
+7. 対象版の公式 server JAR で [`validation.md`](validation.md) の検査を行う
 
 「最新の構文を古い版向けに書き戻す」より、対象版の仕様を最初から選ぶことを優先してください。`pack_format` が同じでも、コマンド、NBT、レジストリ、JSON の意味が変わる場合があります。
 
@@ -20,10 +22,35 @@
 | [`versions/<version>.md`](versions/README.md) | そのゲーム版の確定プロファイル、前版との差分、互換性 |
 | [`ai-authoring.md`](ai-authoring.md) | AIが版を解決し、ファイルを生成する決定手順 |
 | [`commands.md`](commands.md) | `.mcfunction` の書式、引数、実行文脈、コマンドの版境界 |
+| [`execution-model.md`](execution-model.md) | executor、位置、分岐、function結果、load/tick/scheduleの細かな挙動 |
+| [`state-management.md`](state-management.md) | scoreboard、storage、entity tag、永続性、migration |
+| [`advancements.md`](advancements.md) | criteria、requirements、reward、grant/revoke、player event |
 | [`json-formats.md`](json-formats.md) | `pack.mcmeta` と全データ種別の配置・JSON/SNBT の基本形 |
+| [`content-hooks.md`](content-hooks.md) | 追加block/entity/itemと観測・制御手段、データパック企画の着眼点 |
+| [`implementation-patterns.md`](implementation-patterns.md) | 状態機械、timer、event queue、API、性能、testの中上級パターン |
 | [`compatibility.md`](compatibility.md) | 後方互換、前方互換、overlay、移行方針 |
 | [`validation.md`](validation.md) | 公式 JAR から正確なコマンド木・レジストリ・vanilla JSON を得る方法 |
 | [`sources.md`](sources.md) | 採用した一次資料と Minecraft Wiki の使い分け |
+
+## 習熟度別の経路
+
+### 基本
+
+`versions/<version>.md` → `commands.md` → `json-formats.md` → `validation.md`
+
+対象版で読み込める最小packを作り、構文・配置・JSON codecを確認します。
+
+### 中級
+
+上記に `execution-model.md`、`state-management.md`、`advancements.md` を加えます。
+
+player別状態、event駆動、timer、function結果、reload・再起動後の永続性まで設計します。
+
+### 上級
+
+`content-hooks.md` からvanilla gameplay要素を選び、`implementation-patterns.md` に従ってmigration、API、性能上限、GameTestを含めます。
+
+上級の完了条件は「構文が通る」だけでなく、対象0件・複数対象・chunk unload・multiplayer・旧world更新で挙動が定義されていることです。
 
 ## AI が対象版を決める規則
 

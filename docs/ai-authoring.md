@@ -44,6 +44,8 @@ resolve(target_version):
   prepend origin profile
 
   state = common rules from commands.md and json-formats.md
+  if requirements mention gameplay content:
+    resolve observations and controls from content-hooks.md
   for delta in chain:
     apply additions
     apply changes/renames
@@ -77,9 +79,10 @@ resolve(target_version):
 3. `pack.mcmeta`
 4. 全 `.mcfunction`
 5. 全 JSON と必要な `.nbt` structure
-6. install/reload手順
-7. 対象版での検証項目
-8. 複数版対応なら共通部分とoverlayの対応表
+6. entry pointごとのexecutor、位置、dimension、状態owner
+7. install/reload手順
+8. 対象版での検証項目
+9. 複数版対応なら共通部分とoverlayの対応表
 
 「変更する部分だけ」を依頼された場合を除き、互いに参照するfileは省略しません。
 
@@ -170,5 +173,7 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 - registry/resource reference欠落なし
 - `/reload` logにparse/codec/tag errorなし
 - load/tick/reward/schedule等のentry pointが実行される
+- 永続状態のowner、初期化、migration、cleanupが定義される
+- 追加block/entityを使う場合、観測・制御方法とデータパック単独の限界が明記される
 - 要件のfunctional testが成功
 - experimental利用とworld upgrade不可逆性を利用者へ明示

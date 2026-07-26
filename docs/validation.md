@@ -129,6 +129,25 @@ vanilla に例がない data-driven registry は、対象版の公式 release no
 - JSON codec の load 成功だけでなく、score、block、entity、loot の結果を assertion にする
 - GameTest 自体も版依存なので、古い対象版の共通 test 手段としては使わない
 
+## 8. 振る舞いの検査
+
+`commands.json` とJSON parseは構文を検査しますが、実行コンテキスト、永続状態、vanilla AI、複数対象時の分岐までは保証しません。
+
+中上級packでは次もtestします。
+
+```text
+[ ] executor、position、dimensionがentry pointごとに正しい
+[ ] selector対象が0件・1件・複数件の各場合
+[ ] 未設定score、欠損storage path、未load chunk
+[ ] loadを連続2回実行しても状態を壊さない
+[ ] logout/loginとserver再起動後の状態
+[ ] 旧pack schemaおよび旧Minecraft版worldからのmigration
+[ ] entityのdeath、despawn、dimension移動、成長、変換、騎乗解除
+[ ] vanilla AIや乱数の順序へ重要状態を依存させていない
+```
+
+設計上の確認は [`execution-model.md`](execution-model.md)、[`state-management.md`](state-management.md)、[`implementation-patterns.md`](implementation-patterns.md) を参照してください。追加block/entityの機能testは [`content-hooks.md`](content-hooks.md) の企画時チェックを併用します。
+
 ## 参照
 
 - [公式 version manifest v2](https://piston-meta.mojang.com/mc/game/version_manifest_v2.json)
