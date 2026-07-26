@@ -1,6 +1,6 @@
 # 実行ハーネス
 
-`tools/datapack_harness.py` は、正式版プロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。Python標準ライブラリだけを使用します。
+`tools/datapack_harness.py` は、正式版プロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。このCLIを使用する場合だけPython 3.10以降が必要で、追加のPython packageは使用しません。
 
 MinecraftのBrigadierとcodecを再実装しません。静的に確定できない項目は警告します。server検査を行うかはproject設定の要求levelと利用者の判断で決めます。
 

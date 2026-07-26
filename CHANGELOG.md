@@ -8,6 +8,7 @@
 - 配布元metadataを任意化し、導入済みversionの正本を `VERSION` に統一
 - consumer CI templateをpull request時の静的検査1回へ簡素化
 - AI向けの日常生成手順から重複するprofile単独検査を削除
+- Pythonを付属CLI利用時だけの要件として明確化
 
 ## 0.1.0
 
