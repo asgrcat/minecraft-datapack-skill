@@ -32,11 +32,14 @@ JSON出力:
 
 - 対象版profile
 - 1.13から対象版までのinheritance chain
-- 各版の `AI 生成規則`
+- 対象版だけの `active_ai_rules`
+- 過去版の参考履歴 `rule_history`（対象版へ適用しない）
 - command/registry/vanilla dataの正本path
 - server検査に必要なJava major
 
 versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock版、近似semverを受け付けません。
+
+`rule_history` は変更理由を追跡するための参考情報です。過去版の禁止規則を対象版へ累積適用しません。対象版で使用可能なcommand、registry、vanilla resourceは、自然言語規則ではなく対象版report/dataで決定します。
 
 ## 3. 公式server JAR
 
@@ -70,6 +73,8 @@ python3 tools/datapack_harness.py reports 1.20.5 \
 - 1.13〜1.17.1: classpathから `net.minecraft.data.Main`
 - 1.18以降: bundlerのmain classを指定
 
+data generatorは自動削除される一時working directoryで実行します。bundlerが展開する `libraries/`、`versions/`、`logs/` はリポジトリへ残りません。`--output` は起動時のdirectoryを基準に絶対pathへ解決します。
+
 必要Java major:
 
 | 正式版 | Java |
@@ -91,13 +96,13 @@ python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
 
 検査内容:
 
-- `pack.mcmeta` のJSONと対象format包含
+- `pack.mcmeta` のtop-level object、JSON、対象format包含
 - 全 `.json` のUTF-8/JSON構文
 - namespace/resource pathの文字
 - plural/singular data directory
 - function tag directory
 - `.mcfunction` の先頭 `/`
-- macroの1.20.2境界
+- macroと行継続の1.20.2境界
 - `commands.json` に存在するroot literal
 - 自namespaceのfunction参照切れ
 - `registries.json` と照合できないvanilla ID候補
@@ -118,6 +123,7 @@ python3 tools/datapack_harness.py server-test 1.20.5 path/to/pack \
   --cache-dir .cache/minecraft \
   --java /path/to/java \
   --accept-eula \
+  --expect-log "PACK_TEST_LOAD_OK" \
   --log build/1.20.5/server-test.log
 ```
 
@@ -126,11 +132,15 @@ python3 tools/datapack_harness.py server-test 1.20.5 path/to/pack \
 1. 一時server directoryを作る
 2. packを新規worldの `datapacks` へcopy
 3. exact release serverを起動
-4. startup完了後に `reload` を送る
-5. serverを停止
-6. exit statusとparse/load/JSON errorを検査
+4. startup後のenabled一覧に `file/pack-under-test` があることを確認
+5. `reload` を送り、開始とadvancement reload完了logを待つ
+6. reload後のenabled一覧にもpackがあることを再確認
+7. serverを停止
+8. exit statusとparse/load/function/JSON errorを検査
 
 `--accept-eula` は、実行者がMinecraft EULAへ同意したことを明示する必須flagです。指定なしではserverを起動しません。
+
+`--expect-log` は任意かつ複数指定可能です。packの `minecraft:load` entry pointから一意な文字列をconsoleへ出すテスト用functionを用意し、その文字列を指定すると、reload区間内での実行も肯定的に確認できます。指定しない場合、ハーネスが保証するのはpackの有効化、reload完了、既知load error不在までであり、任意のentry point実行までは保証しません。
 
 server検査は一時worldを使用します。既存worldをupgradeしません。旧world migration testは、利用者が複製した専用worldで別に行います。
 
@@ -143,7 +153,7 @@ server検査は一時worldを使用します。既存worldをupgradeしません
 | `fetch` | 公式release JARとSHA-1 |
 | `reports` | 対象版のcommand graph・registry・vanilla data |
 | `validate-pack` | pack構造と一部参照の静的検査 |
-| `server-test` | exact serverでstartup/reload時のload検査 |
+| `server-test` | exact serverでpack有効化、reload完了、既知load error不在を検査 |
 | GameTest/client E2E | gameplay要件の結果 |
 
 `server-test`に成功しても、player入力、camera、AI、乱数、multiplayer、chunk unloadの要件までは保証しません。[`validation.md`](validation.md) と [`gameplay-requirements.md`](gameplay-requirements.md) の機能testを追加します。

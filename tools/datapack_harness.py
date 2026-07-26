@@ -38,12 +38,30 @@ FUNCTION_REFERENCE = re.compile(
     r"(#?[a-z0-9_.-]+:[a-z0-9/._-]+)"
 )
 ERROR_LOG_PATTERNS = (
+    "couldn't load",
     "couldn't parse",
     "failed to load",
+    "failed to parse",
+    "unknown function",
+    "error loading",
+    "error parsing",
+    "exception loading",
     "not a json",
     "syntax error",
     "errors in currently selected datapacks",
     "failed to validate datapack",
+    "failed to execute reload",
+    "failed to reload",
+)
+ENABLED_PACK_ID = "file/pack-under-test"
+ENABLED_LIST_PATTERN = re.compile(
+    r"\bdata pack(?:\(s\)|s)? enabled:",
+    re.IGNORECASE,
+)
+RELOAD_STARTED_PATTERN = re.compile(r"\bReloading!\s*$", re.IGNORECASE | re.MULTILINE)
+RELOAD_COMPLETED_PATTERN = re.compile(
+    r"\bLoaded\s+\d+\s+advancements\b",
+    re.IGNORECASE,
 )
 MAX_MINOR_VERSION = 0x7FFFFFFF
 
@@ -273,6 +291,32 @@ def public_profile(profile: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def resolved_profile_payload(
+    version: str,
+    profiles: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    chain = resolve_chain(version, profiles)
+    target = chain[-1]
+    return {
+        "profile": public_profile(target),
+        "inheritance_chain": [profile["version"] for profile in chain],
+        "active_ai_rules": extract_ai_rules(Path(target["_path"])),
+        "rule_history": [
+            {
+                "version": profile["version"],
+                "rules": extract_ai_rules(Path(profile["_path"])),
+            }
+            for profile in chain[:-1]
+        ],
+        "capability_authority": {
+            "commands": "generated/reports/commands.json",
+            "registries": "generated/reports/registries.json",
+            "vanilla_data": "generated/data/minecraft",
+        },
+        "required_java_major": required_java_major(version, profiles),
+    }
+
+
 def fetch_json(url: str) -> dict[str, Any]:
     request = urllib.request.Request(
         url,
@@ -363,6 +407,9 @@ def run_reports(
     profiles: dict[str, dict[str, Any]],
 ) -> None:
     jar_path, _ = fetch_release(version, cache_dir)
+    jar_path = jar_path.resolve()
+    output = output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
     order = ordered_versions(profiles)
     if order.index(version) <= order.index("1.17.1"):
         command = [
@@ -391,7 +438,14 @@ def run_reports(
         f"target: {' '.join(command)}",
         file=sys.stderr,
     )
-    completed = subprocess.run(command, check=False)
+    with tempfile.TemporaryDirectory(
+        prefix="mc-datapack-reports-"
+    ) as working_directory:
+        completed = subprocess.run(
+            command,
+            cwd=working_directory,
+            check=False,
+        )
     if completed.returncode:
         raise HarnessError(f"data generator exited with {completed.returncode}")
 
@@ -516,7 +570,10 @@ def logical_function_lines(text: str) -> Iterable[tuple[int, str]]:
         stripped_right = physical.rstrip()
         if not buffer:
             start = number
-        if stripped_right.endswith("\\"):
+        if (
+            stripped_right.endswith("\\")
+            and not stripped_right.lstrip().startswith("#")
+        ):
             buffer += stripped_right[:-1].strip() + " "
             continue
         logical = (buffer + physical.strip()).strip()
@@ -542,15 +599,19 @@ def validate_pack(
         return result
 
     metadata_path = pack_root / "pack.mcmeta"
-    metadata: dict[str, Any] | None = None
+    metadata: Any = None
+    metadata_parsed = False
     if not metadata_path.is_file():
         result.error("pack.mcmeta is missing")
     else:
         try:
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata_parsed = True
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             result.error(f"pack.mcmeta: invalid UTF-8/JSON: {error}")
-    if metadata is not None:
+    if metadata_parsed and not isinstance(metadata, dict):
+        result.error("pack.mcmeta: top level must be an object")
+    elif metadata_parsed:
         pack = metadata.get("pack")
         if not isinstance(pack, dict):
             result.error("pack.mcmeta: pack must be an object")
@@ -667,9 +728,21 @@ def validate_pack(
 
     order = ordered_versions(profiles)
     supports_macro = order.index(version) >= order.index("1.20.2")
+    supports_line_continuation = supports_macro
     for path in function_files:
         relative = path.relative_to(pack_root)
         text = path.read_text(encoding="utf-8")
+        if not supports_line_continuation:
+            for number, physical in enumerate(text.splitlines(), start=1):
+                stripped = physical.rstrip()
+                if (
+                    stripped.endswith("\\")
+                    and not stripped.lstrip().startswith("#")
+                ):
+                    result.error(
+                        f"{relative}:{number}: line continuation requires "
+                        "1.20.2 or later"
+                    )
         for number, line in logical_function_lines(text):
             if line.startswith("#"):
                 continue
@@ -742,6 +815,27 @@ def copy_pack(pack: Path, destination: Path) -> None:
     shutil.copytree(pack, destination)
 
 
+def server_log_errors(log: str) -> list[str]:
+    lower = log.lower()
+    return [pattern for pattern in ERROR_LOG_PATTERNS if pattern in lower]
+
+
+def enabled_list_completed(log: str) -> bool:
+    return ENABLED_LIST_PATTERN.search(log) is not None
+
+
+def tested_pack_is_enabled(log: str) -> bool:
+    return enabled_list_completed(log) and ENABLED_PACK_ID in log
+
+
+def reload_started(log: str) -> bool:
+    return RELOAD_STARTED_PATTERN.search(log) is not None
+
+
+def reload_completed(log: str) -> bool:
+    return RELOAD_COMPLETED_PATTERN.search(log) is not None
+
+
 def server_test(
     version: str,
     pack: Path,
@@ -749,6 +843,7 @@ def server_test(
     cache_dir: Path,
     timeout: int,
     accept_eula: bool,
+    expected_logs: Iterable[str] = (),
 ) -> tuple[int, str]:
     if not accept_eula:
         raise HarnessError("server-test requires explicit --accept-eula")
@@ -784,25 +879,104 @@ def server_test(
         )
         output: list[str] = []
         started = threading.Event()
+        output_changed = threading.Condition()
 
         def read_output() -> None:
             assert process.stdout is not None
             for line in process.stdout:
-                output.append(line)
+                with output_changed:
+                    output.append(line)
+                    output_changed.notify_all()
                 if re.search(r'Done \([0-9.]+s\)!', line):
                     started.set()
+            with output_changed:
+                output_changed.notify_all()
+
+        def send_command(command: str) -> int:
+            assert process.stdin is not None
+            with output_changed:
+                start_index = len(output)
+            process.stdin.write(command + "\n")
+            process.stdin.flush()
+            return start_index
+
+        def wait_for_output(
+            start_index: int,
+            predicate: Any,
+            description: str,
+        ) -> str:
+            deadline = time.monotonic() + timeout
+            with output_changed:
+                while True:
+                    segment = "".join(output[start_index:])
+                    if predicate(segment):
+                        return segment
+                    errors = server_log_errors(segment)
+                    if errors:
+                        raise HarnessError(
+                            f"server log reported error(s) before {description}: "
+                            + ", ".join(errors)
+                        )
+                    if process.poll() is not None:
+                        raise HarnessError(
+                            f"server exited before {description}"
+                        )
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise HarnessError(
+                            f"server did not report {description} within {timeout}s"
+                        )
+                    output_changed.wait(remaining)
 
         reader = threading.Thread(target=read_output, daemon=True)
         reader.start()
         try:
             if not started.wait(timeout):
                 raise HarnessError(f"server did not finish startup within {timeout}s")
-            assert process.stdin is not None
-            process.stdin.write("reload\n")
-            process.stdin.flush()
-            time.sleep(min(10, max(2, timeout // 6)))
-            process.stdin.write("stop\n")
-            process.stdin.flush()
+
+            enabled_start = send_command("datapack list enabled")
+            enabled_log = wait_for_output(
+                enabled_start,
+                enabled_list_completed,
+                "the enabled data pack list",
+            )
+            if not tested_pack_is_enabled(enabled_log):
+                raise HarnessError(
+                    f"{ENABLED_PACK_ID} is absent from the enabled data pack list"
+                )
+
+            reload_start = send_command("reload")
+            wait_for_output(
+                reload_start,
+                reload_started,
+                "reload start",
+            )
+            reload_log = wait_for_output(
+                reload_start,
+                reload_completed,
+                "reload completion",
+            )
+            expected_logs = tuple(expected_logs)
+            if expected_logs:
+                reload_log = wait_for_output(
+                    reload_start,
+                    lambda log: reload_completed(log)
+                    and all(marker in log for marker in expected_logs),
+                    "reload completion and expected log marker(s)",
+                )
+
+            recheck_start = send_command("datapack list enabled")
+            recheck_log = wait_for_output(
+                recheck_start,
+                enabled_list_completed,
+                "the post-reload enabled data pack list",
+            )
+            if not tested_pack_is_enabled(recheck_log):
+                raise HarnessError(
+                    f"{ENABLED_PACK_ID} is not enabled after reload"
+                )
+
+            send_command("stop")
             process.wait(timeout=timeout)
         finally:
             if process.poll() is None:
@@ -814,8 +988,7 @@ def server_test(
             reader.join(timeout=2)
 
         log = "".join(output)
-        lower = log.lower()
-        failures = [pattern for pattern in ERROR_LOG_PATTERNS if pattern in lower]
+        failures = server_log_errors(log)
         if process.returncode != 0:
             failures.append(f"server exit {process.returncode}")
         return (1 if failures else 0), log
@@ -867,6 +1040,12 @@ def build_parser() -> argparse.ArgumentParser:
     server.add_argument("--java", default="java")
     server.add_argument("--timeout", type=int, default=120)
     server.add_argument("--accept-eula", action="store_true")
+    server.add_argument(
+        "--expect-log",
+        action="append",
+        default=[],
+        help="require this literal marker in the reload log; repeatable",
+    )
     server.add_argument("--log", type=Path)
     return parser
 
@@ -889,24 +1068,7 @@ def main(argv: list[str] | None = None) -> int:
             raise HarnessError(f"unsupported formal release profile: {args.version}")
 
         if args.command == "resolve":
-            chain = resolve_chain(args.version, profiles)
-            payload = {
-                "profile": public_profile(chain[-1]),
-                "inheritance_chain": [profile["version"] for profile in chain],
-                "ai_rules": [
-                    {
-                        "version": profile["version"],
-                        "rules": extract_ai_rules(Path(profile["_path"])),
-                    }
-                    for profile in chain
-                ],
-                "capability_authority": {
-                    "commands": "generated/reports/commands.json",
-                    "registries": "generated/reports/registries.json",
-                    "vanilla_data": "generated/data/minecraft",
-                },
-                "required_java_major": required_java_major(args.version, profiles),
-            }
+            payload = resolved_profile_payload(args.version, profiles)
             print(json.dumps(payload, ensure_ascii=False, indent=2))
             return 0
         if args.command == "fetch":
@@ -948,6 +1110,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.cache_dir,
                 args.timeout,
                 args.accept_eula,
+                args.expect_log,
             )
             if args.log:
                 args.log.parent.mkdir(parents=True, exist_ok=True)

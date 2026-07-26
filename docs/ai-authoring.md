@@ -39,7 +39,8 @@ resolve(target_version):
 
   validate profile against versions/profile.schema.json
   chain = resolve_inheritance(profile)
-  rules = collect each profile's "AI 生成規則" bullets in chain order
+  active_rules = target profile's "AI 生成規則" bullets
+  rule_history = ancestor rules for reference only
 
   exact_release = official_manifest.release[target_version]
   reports = generate_reports(exact_release.server_jar)
@@ -48,7 +49,7 @@ resolve(target_version):
   capabilities.vanilla_data = generated/data/minecraft
 
   state = common rules from commands.md and json-formats.md
-  apply target profile's metadata and collected rules
+  apply target profile's metadata and active_rules
   if requirements mention gameplay content:
     resolve observations and controls from content-hooks.md
 
@@ -56,7 +57,7 @@ resolve(target_version):
   reject commands, IDs and JSON resources absent from capabilities
 ```
 
-`inherits` はmetadataとAI規則の由来を追跡するために使います。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成しません。command、registry、vanilla JSONの有効集合は、対象版JARから直接得ます。
+`inherits` はmetadataとAI規則の履歴を追跡するために使います。対象版へ適用するのは対象版自身の `active_ai_rules` だけです。祖先版の規則は `rule_history` として出力しますが、後続版で解除された禁止事項を累積適用しません。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成せず、command、registry、vanilla JSONの有効集合は対象版JARから直接得ます。
 
 機械処理では [`versions/profile.schema.json`](versions/profile.schema.json) の基本クラスと `compatibility_tags` を解釈します。本文の「コマンド」「JSON」「変更」などの見出し名は入力スキーマではありません。
 

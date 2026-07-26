@@ -71,7 +71,7 @@ python3 tools/datapack_harness.py resolve 1.20.5
 
 1. 文字列を正式版 ID として完全一致させる。`1.20` と `1.20.1`、`26.1` と `1.26.1` は別物である
 2. 対応する版ファイルの YAML front matter を読み、`data_pack_format` と `directory_schema` を採用する
-3. `inherits` を辿ってmetadataと共通の `AI 生成規則` を累積する。コマンド・registry・vanilla JSONの機械判定は自然言語の見出しでなく、対象版JARのreport/dataで確定する
+3. `inherits` はmetadataと規則の履歴追跡に使い、生成へ適用するのは対象版自身の `AI 生成規則` だけとする。コマンド・registry・vanilla JSONの機械判定は自然言語の見出しでなく、対象版JARのreport/dataで確定する
 4. 未指定の機能を、対象版より後に導入されたという理由だけで代替実装なしに使わない
 5. 対象版より新しい公式例を流用する場合、コマンド木、フォルダ名、JSON フィールド、ID、NBT、item component をすべて対象版へ変換する
 6. 検証できない構文を推測で出力せず、対象版 server JAR の `generated/reports/commands.json` または vanilla data を参照する
