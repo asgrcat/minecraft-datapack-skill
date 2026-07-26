@@ -140,21 +140,38 @@ overlay は列挙順に適用され、後から適用される内容が同じ re
 
 ## 互換性クラス
 
-各版ファイルでは次の語を使います。
+各版ファイルの `compatibility` は次の4種類だけを使います。追加の意味は任意の `compatibility_tags` 配列へ分離します。機械可読な定義は [`versions/profile.schema.json`](versions/profile.schema.json) を正本とします。
 
 | クラス | 意味 | AI の動作 |
 |---|---|---|
 | `same-format` | 前版と同じ pack format | 差分を適用し、構文まで同じとは仮定しない |
-| `minor-compatible` | 1.21.9 以降で pack major が同じ、minor だけ増加 | 以前の同 major パックは原則読める。新 minor の機能を使うなら `min_format` を上げる |
 | `breaking-format` | pack major が変化 | 自動的に共通化せず、移行項目を処理する |
 | `metadata-break` | metadata schema 自体が変化 | `pack.mcmeta` を対象版用に生成し直す |
 | `hotfix` | データパック仕様の意図的変更がない修正版 | 直前版の仕様を継承する。ただし既知バグの挙動差はあり得る |
 
+`minor-compatible` はreleaseの互換性クラスではありません。1.21.9以降のpack formatでmajorが同じかを、`data_pack_format` のmajor/minor比較から計算する関係です。
+
+定義済みtag:
+
+| tag | 意味 |
+|---|---|
+| `origin` | 現行版プロファイルの起点 |
+| `behavior-fix` | 同じformat内の挙動修正 |
+| `schema-break` | 同じformat内のJSON等のschema変更 |
+| `experimental` | experimental/data-driven worldgen境界 |
+| `overlay` | overlay導入境界 |
+| `item-components` | item NBTからcomponentへの移行 |
+| `directory-rename` | data folderの単数形化 |
+| `text-entity-components` | text/SNBT/entity componentの大変更 |
+| `strict-json` | JSON codec厳格化 |
+| `small-delta` | format変更を伴う小差分 |
+| `world-storage` | world保存形式の大変更 |
+
 ## 版をまたぐ設計手順
 
 1. 対象となる最古・最新の正式版を決める
-2. その区間にある全版ファイルの `breaking_changes` を集める
-3. 最古版でも使えるコマンド・JSON・IDだけを基底に置く
+2. その区間にある全版ファイルの `compatibility`、`compatibility_tags`、`AI 生成規則` を集める
+3. 各対象版JARのcommand/registry/vanilla dataを比較し、最古版でも使える機能だけを基底に置く
 4. フォルダ rename、item component、text component、gamerule など同一ファイル内で両立しない差分を overlay へ分離する
 5. 新機能がなくても動く代替実装を用意できなければ、その版を対応範囲から外す
 6. 範囲内の**各正式版**で reload と機能テストを行う。両端だけの検査では、途中の同形式変更を見落とす

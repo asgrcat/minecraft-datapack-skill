@@ -20,7 +20,7 @@ execute as @a at @s run particle minecraft:happy_villager ~ ~1 ~
 - 空行、コマンド前後の空白は許容される
 - reload 時に通常行を構文解析し、1行でも構文エラーがあればその function は読み込まれない
 - command block の 32,500 文字制限より長い行も function には書けるが、実用上は分割する
-- 1.13〜1.20.1 では `data/<namespace>/functions/<path>.mcfunction`
+- 1.13〜1.20.6 では `data/<namespace>/functions/<path>.mcfunction`
 - 1.21 以降は `data/<namespace>/function/<path>.mcfunction`。旧 `functions` は使わない
 
 ### 1.20.2 以降: 行継続
@@ -111,7 +111,7 @@ example:combat/on_hit
 | `@e` | 全 entity |
 | `@p` | 最寄り player |
 | `@r` | ランダム player |
-| `@n` | 最寄り entity。1.21.5 以降 |
+| `@n` | 最寄り entity。1.21 以降 |
 
 `limit=1` を付けても「単一 entity 引数に許される selector」とは限りません。引数 parser が `entity` か `entities`、`player` か `players` かを `commands.json` で確認します。
 

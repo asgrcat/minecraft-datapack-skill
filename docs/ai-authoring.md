@@ -37,28 +37,28 @@ resolve(target_version):
   if profile does not exist:
     stop as unsupported
 
-  chain = []
-  while profile.inherits is not null:
-    prepend profile to chain
-    profile = versions/<profile.inherits>.md
-  prepend origin profile
+  validate profile against versions/profile.schema.json
+  chain = resolve_inheritance(profile)
+  rules = collect each profile's "AI 生成規則" bullets in chain order
+
+  exact_release = official_manifest.release[target_version]
+  reports = generate_reports(exact_release.server_jar)
+  capabilities.commands = reports/commands.json
+  capabilities.registries = reports/registries.json
+  capabilities.vanilla_data = generated/data/minecraft
 
   state = common rules from commands.md and json-formats.md
+  apply target profile's metadata and collected rules
   if requirements mention gameplay content:
     resolve observations and controls from content-hooks.md
-  for delta in chain:
-    apply additions
-    apply changes/renames
-    remove deleted symbols
-    apply ai_rules last
 
-  emit using target profile's:
-    data_pack_format
-    directory_schema
-    metadata generation
+  emit using target profile's data_pack_format and directory_schema
+  reject commands, IDs and JSON resources absent from capabilities
 ```
 
-`inherits` は「内容をコピーする」のではなく、前版の有効機能集合へ差分を適用する意味です。削除されたcommand/field/IDは継承集合から除去します。
+`inherits` はmetadataとAI規則の由来を追跡するために使います。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成しません。command、registry、vanilla JSONの有効集合は、対象版JARから直接得ます。
+
+機械処理では [`versions/profile.schema.json`](versions/profile.schema.json) の基本クラスと `compatibility_tags` を解釈します。本文の「コマンド」「JSON」「変更」などの見出し名は入力スキーマではありません。
 
 ## fail-closed
 
@@ -177,3 +177,5 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 - 追加block/entityを使う場合、観測・制御方法とデータパック単独の限界が明記される
 - 要件のfunctional testが成功
 - experimental利用とworld upgrade不可逆性を利用者へ明示
+
+これらを文書上の自己申告だけで完了扱いにしません。[`harness.md`](harness.md) のprofile解決、対象版report、静的検査、server testの終了codeと、機能test結果を記録します。

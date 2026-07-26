@@ -44,6 +44,12 @@ vanilla gameplayに存在することと、データパック用callbackが公�
 
 Minecraft Wiki はコミュニティ運営であり Mojang 公式ではありません。変更の発見と横断表には有用ですが、`data_pack_format` と構文は公式 JAR でも再検証してください。
 
+## `release_date` の定義
+
+版プロファイルの `release_date` は、Mojangが一般利用者向けに正式版を公開したcalendar dateです。地域表示による日付差がある場合は、版ページと公式告知で採用した日付を記録します。
+
+公式version manifestの `releaseTime` はartifact metadataのtimestampであり、`release_date` と一致することを要求しません。JAR取得、正式版の完全一致、並び順の機械処理には `release_date` を使わず、manifestのrelease ID、`releaseTime`、download URL、SHA-1を使います。
+
 Wiki の `Pack format` 本文や一覧には更新遅れの注意書きが出る場合があります。本リポジトリでは安定版の値を各公式 release note、公式 version manifest、Wiki の版別ページおよび `Template:Data_pack_format` と照合しました。また、Wiki の現行 folder一覧に表示される `upcoming`（現在は26.3 snapshot）項目は、26.2の安定版一覧から除外しています。
 
 ## 更新日

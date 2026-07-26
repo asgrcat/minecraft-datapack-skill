@@ -27,7 +27,9 @@
 | [`advancements.md`](advancements.md) | criteria、requirements、reward、grant/revoke、player event |
 | [`json-formats.md`](json-formats.md) | `pack.mcmeta` と全データ種別の配置・JSON/SNBT の基本形 |
 | [`content-hooks.md`](content-hooks.md) | 追加block/entity/itemと観測・制御手段、データパック企画の着眼点 |
+| [`gameplay-requirements.md`](gameplay-requirements.md) | 共同eventを例にした複合要件の可否、状態遷移、競合、cleanup |
 | [`implementation-patterns.md`](implementation-patterns.md) | 状態機械、timer、event queue、API、性能、testの中上級パターン |
+| [`harness.md`](harness.md) | 版解決、JAR/SHA-1、report生成、静的検査、server reloadの実行方法 |
 | [`compatibility.md`](compatibility.md) | 後方互換、前方互換、overlay、移行方針 |
 | [`validation.md`](validation.md) | 公式 JAR から正確なコマンド木・レジストリ・vanilla JSON を得る方法 |
 | [`sources.md`](sources.md) | 採用した一次資料と Minecraft Wiki の使い分け |
@@ -48,9 +50,20 @@ player別状態、event駆動、timer、function結果、reload・再起動後�
 
 ### 上級
 
-`content-hooks.md` からvanilla gameplay要素を選び、`implementation-patterns.md` に従ってmigration、API、性能上限、GameTestを含めます。
+`content-hooks.md` からvanilla gameplay要素を選び、複合要件は `gameplay-requirements.md` で可否を判定し、`implementation-patterns.md` に従ってmigration、API、性能上限、GameTestを含めます。
 
 上級の完了条件は「構文が通る」だけでなく、対象0件・複数対象・chunk unload・multiplayer・旧world更新で挙動が定義されていることです。
+
+## 実行ハーネス
+
+最初にprofile schemaと継承を検査します。
+
+```bash
+python3 tools/datapack_harness.py profiles
+python3 tools/datapack_harness.py resolve 1.20.5
+```
+
+公式JARの取得、report生成、pack静的検査、server reloadまでの手順は [`harness.md`](harness.md) を参照してください。
 
 ## AI が対象版を決める規則
 
@@ -58,7 +71,7 @@ player別状態、event駆動、timer、function結果、reload・再起動後�
 
 1. 文字列を正式版 ID として完全一致させる。`1.20` と `1.20.1`、`26.1` と `1.26.1` は別物である
 2. 対応する版ファイルの YAML front matter を読み、`data_pack_format` と `directory_schema` を採用する
-3. `inherits` を辿って累積仕様を得た後、現在の版の `breaking_changes` と `ai_rules` で上書きする
+3. `inherits` を辿ってmetadataと共通の `AI 生成規則` を累積する。コマンド・registry・vanilla JSONの機械判定は自然言語の見出しでなく、対象版JARのreport/dataで確定する
 4. 未指定の機能を、対象版より後に導入されたという理由だけで代替実装なしに使わない
 5. 対象版より新しい公式例を流用する場合、コマンド木、フォルダ名、JSON フィールド、ID、NBT、item component をすべて対象版へ変換する
 6. 検証できない構文を推測で出力せず、対象版 server JAR の `generated/reports/commands.json` または vanilla data を参照する

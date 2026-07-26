@@ -257,6 +257,8 @@ ID追加だけでは、AI、drop、interaction、block state、tag membershipの
 
 既存entityをtag/component/equipmentで役割化したり、display/interaction entity、dialog、text、particle、soundを組み合わせることはできます。「新しいIDを追加した」のか「vanilla IDを別用途に見せている」のかを利用者へ明示します。
 
+複数playerの参加、進行中の条件変化、死亡・disconnect・chunk unloadをまたぐ複合要件は、構成要素の一覧だけで可否を判定しません。[`gameplay-requirements.md`](gameplay-requirements.md) の判定カード、状態遷移、競合処理、cleanup、機能testを適用します。
+
 ## 企画時の確認項目
 
 ```text

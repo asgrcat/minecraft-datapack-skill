@@ -126,7 +126,7 @@ data/<namespace>/
 | pig/cow/chicken/cat/frog variant | 1.21.5 | entity variant と spawn condition |
 | wolf_sound_variant | 1.21.5 | wolf の adult/baby sound set |
 | test_environment / test_instance | 1.21.5 | GameTest 定義 |
-| trial_spawner | 1.21.5 系 | trial spawner configuration |
+| trial_spawner | 1.21.2 | trial spawner configuration |
 | dialog | 1.21.6 | client に表示する dialog |
 | zombie_nautilus_variant / timeline | 1.21.11 | variant と時間に応じた event/attribute |
 | world_clock / trade_set / villager_trade | 26.1 | clock と villager/wandering trader trade |

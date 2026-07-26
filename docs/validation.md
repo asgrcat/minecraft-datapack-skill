@@ -2,6 +2,8 @@
 
 Markdown の要約だけでコマンドや worldgen codec の全分岐を推測しないでください。Mojang が配布する対象版 server JAR には、その版の command graph、registry、vanilla data を生成する入口があります。
 
+以下の取得、SHA-1、data generator、静的検査、server reloadは `tools/datapack_harness.py` から実行できます。CLIと保証範囲は [`harness.md`](harness.md) を参照してください。
+
 ## 1. 正式版 server JAR を特定する
 
 公式 version manifest から、完全一致する release ID を選びます。
