@@ -62,7 +62,7 @@ consumer-repository/
 ハーネスのrevisionを利用者repositoryのgitlinkで固定できます。更新差分を分離したい場合の推奨方法です。
 
 ```bash
-git submodule add https://github.com/asgrcat/mc-datapack-docs \
+git submodule add https://github.com/asgrcat/mc-datapack-harness \
   tools/mc-datapack-harness
 git -C tools/mc-datapack-harness checkout <tag-or-full-commit>
 git add .gitmodules tools/mc-datapack-harness
@@ -75,7 +75,7 @@ git add .gitmodules tools/mc-datapack-harness
 ```bash
 git subtree add \
   --prefix tools/mc-datapack-harness \
-  https://github.com/asgrcat/mc-datapack-docs \
+  https://github.com/asgrcat/mc-datapack-harness \
   <tag-or-commit> --squash
 ```
 

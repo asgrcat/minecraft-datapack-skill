@@ -381,7 +381,7 @@ def resolved_profile_payload(
 def fetch_json(url: str) -> dict[str, Any]:
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "mc-datapack-docs-harness/1"},
+        headers={"User-Agent": "mc-datapack-harness/1"},
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.load(response)
@@ -399,7 +399,7 @@ def download_file(url: str, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "mc-datapack-docs-harness/1"},
+        headers={"User-Agent": "mc-datapack-harness/1"},
     )
     temporary = destination.with_suffix(destination.suffix + ".part")
     try:

@@ -62,7 +62,7 @@ The examples below use `tools/mc-datapack-harness` as `<harness-root>`. If you i
 A submodule pins the harness revision in the consumer repository's gitlink. This is the recommended method when harness updates should remain separate from the consumer repository's own changes.
 
 ```bash
-git submodule add https://github.com/asgrcat/mc-datapack-docs \
+git submodule add https://github.com/asgrcat/mc-datapack-harness \
   tools/mc-datapack-harness
 git -C tools/mc-datapack-harness checkout <tag-or-full-commit>
 git add .gitmodules tools/mc-datapack-harness
@@ -75,7 +75,7 @@ A subtree imports the harness history into the consumer repository and avoids ex
 ```bash
 git subtree add \
   --prefix tools/mc-datapack-harness \
-  https://github.com/asgrcat/mc-datapack-docs \
+  https://github.com/asgrcat/mc-datapack-harness \
   <tag-or-commit> --squash
 ```
 
