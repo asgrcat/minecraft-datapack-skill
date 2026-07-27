@@ -1,6 +1,6 @@
 # JSON、SNBT、データ種別
 
-この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンの完全なフィールド定義の実例として併用します。
+この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンのフィールド定義の実例として併用します。item、dimension/worldgen、enchantment、variantのパラメータの意味と版別索引は[`json-parameters/README.md`](json-parameters/README.md)から参照します。
 
 ## JSON と SNBT を混同しない
 
@@ -114,7 +114,8 @@ data/<namespace>/
 | structure | 1.13 | structure block 互換の圧縮 NBT (`.nbt`) |
 | tag | 1.13 | registry entry または function の集合 |
 | predicate | 1.15 | loot condition を再利用可能な JSON にしたもの |
-| dimension / dimension_type / worldgen | 1.16.2 | カスタム world generation。導入当初からバージョン間変更が多い |
+| dimension / dimension_type | 1.16 | カスタムdimension。1.16.0/1.16.1の初期schemaはexperimental |
+| worldgen registry folder群 | 1.16.2 | カスタムworld generationを拡大。導入当初からバージョン間変更が多い |
 | item modifier | 1.17 | loot function の再利用可能な JSON |
 | chat_type | 1.19 | chat message の decoration/narration |
 | damage_type | 1.19.4 | damage の message/scaling/exhaustion/effects |
@@ -249,6 +250,8 @@ data/example/tags/blocks/mineable.json         # 1.20.6以前
 
 ## advancement
 
+root、criteria、trigger、requirements、rewardsのparameterと版境界は[`json-parameters/advancements.md`](json-parameters/advancements.md)を参照してください。
+
 criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復eventへの利用は [`advancements.md`](advancements.md) を参照してください。
 
 最小の trigger-only 例:
@@ -312,6 +315,8 @@ criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復event�
 
 ## predicate
 
+独立predicate、loot condition、entity/location/item/block predicateの型と版境界は[`json-parameters/predicates.md`](json-parameters/predicates.md)を参照してください。
+
 predicate file は単一の loot condition、または暗黙の `all_of` となる配列です。
 
 1.15〜26.1 の代表例:
@@ -350,6 +355,8 @@ predicate の有効な loot context parameter は呼出場所に依存します�
 
 ## item modifier
 
+loot functionとの共有codec、実行context、版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
+
 単一 loot function object または、順に適用する配列です。
 
 ```json
@@ -377,6 +384,8 @@ item modify entity @s weapon.mainhand example:reward
 - item stack component 化以後は NBT を書く旧 loot function から component 用 function へ移行する
 
 ## loot table
+
+root、pool、entry、condition、function、provider、contextのparameterと版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
 
 ```json
 {
@@ -422,6 +431,8 @@ item modify entity @s weapon.mainhand example:reward
 - 1.21.11: `filtered` の fields 変更、`discard` 追加
 
 ## recipe
+
+主要serializer、ingredient、result、category、componentの版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
 
 ### shaped crafting: 1.20.4 以前
 
@@ -529,6 +540,8 @@ data-driven registry を追加すると experimental 扱いになるバージョ
 ## world generation
 
 worldgen は1つの固定 schema ではなく、registry と dispatch `type` ごとの codec 群です。AI は次の順で作成します。
+
+dimension type、generator、biome source、各worldgen familyの役割と主要fieldは[`json-parameters/dimensions-worldgen.md`](json-parameters/dimensions-worldgen.md)を参照してください。
 
 1. 対象バージョン server JAR から vanilla data を生成
 2. 作りたい `type` と同じ vanilla file を最小の基底例に選ぶ

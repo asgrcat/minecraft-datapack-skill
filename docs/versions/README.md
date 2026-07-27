@@ -4,6 +4,8 @@
 
 追加されたblock・entity・itemを「何に使えるか」から探す場合は、バージョンプロファイルと併せて [`../content-hooks.md`](../content-hooks.md) を参照してください。全IDは対象バージョンのserver JARのregistry reportから生成します。
 
+主要9 familyのJSONパラメータは、各プロファイルの`JSONパラメータ差分`を`inherits`順にたどって追加・変更・削除・互換性を解決します。family別のfield説明と全正式リリースの横断索引は[`../json-parameters/README.md`](../json-parameters/README.md)を参照します。
+
 front matterの機械可読schemaは [`profile.schema.json`](profile.schema.json) です。`compatibility` は基本クラス、`compatibility_tags` は追加の移行理由を表します。`tools/datapack_harness.py profiles` で全バージョンのschema、継承、共通見出しを検査できます。
 
 | Java Edition | 公開日 | data pack format | folder | 互換性 |

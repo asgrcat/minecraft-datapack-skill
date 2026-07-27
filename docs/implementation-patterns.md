@@ -1,4 +1,4 @@
-# 中上級の実装パターン
+# 実装パターン
 
 この文書は、個別構文を組み合わせて保守可能なデータパックを設計する定型を示します。先に [`execution-model.md`](execution-model.md)、[`state-management.md`](state-management.md)、[`advancements.md`](advancements.md) を参照してください。
 

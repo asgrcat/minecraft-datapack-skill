@@ -2,6 +2,15 @@
 
 このファイルは、共通ハーネスとして利用者側へ影響する変更を記録します。
 
+## 0.1.3
+
+- item、dimension/worldgen、enchantment、variantのJSONパラメータ資料を追加
+- 用語、gameplay上の意味、誤解、codec、バージョン境界、検証手順をfamily別リファレンスへ統合
+- 全正式リリースから適用するJSON familyの境界を選べる索引を追加
+- 全50正式リリースへ前版からのJSONパラメータ差分と互換性を追加
+- 公式JAR生成物からregistry IDとvanilla観測fieldを集約する`json-catalog`を追加
+- predicate、advancement、loot table、recipe、item modifierのパラメータ資料と版別履歴を追加
+
 ## 0.1.2
 
 - Claude Code向けにroot `CLAUDE.md`を追加

@@ -35,6 +35,18 @@ block、entity、itemの追加情報は、対象正式リリースのMojang rele
 
 vanilla gameplayに存在することと、データパック用callbackが公開されていることは別です。専用advancement triggerやpredicateがないinteractionを、推測したevent名で記述しません。
 
+## データ駆動JSONパラメータ
+
+item component、dimension/worldgen、enchantment、variant、predicate、advancement、loot table、recipe、item modifierは次の証拠を分けて記録します。
+
+1. `registries.json`と`datapack.json`でregistry/type IDとdata packから追加できるelementを確定
+2. `generated/data/minecraft/`とitem default component reportでvanillaが実際に使うfield pathと型を確認
+3. Mojang正式リリースノートでfieldの意味、default、値域、rename、削除を確認
+4. Minecraft Wikiのdata format個別ページでsnapshot間の変更とgameplay上の説明をcross-check
+5. exact release serverのreloadと機能testでcodecと動作を分けて検査
+
+`json-catalog`のregistry ID一覧はreportに公開されたentry集合、`observed_shapes`はvanilla使用例の集計です。`registry_sources: unknown`や`source.datapack: null`はreportから判定できない状態であり、機能非対応を意味しません。観測fieldを完全なJSON Schemaまたはcodecの全分岐として扱いません。保証ラベルとfamily別の出典は[`json-parameters/README.md`](json-parameters/README.md)および各子文書に記載します。
+
 ## バージョンページの URL
 
 各バージョンファイルは次を参照します。
@@ -54,6 +66,6 @@ Wiki の `Pack format` 本文や一覧には更新遅れの注意書きが出る
 
 ## 更新日
 
-最終照合日: 2026-07-26（JST）
+最終照合日: 2026-07-28（JST）
 
 対象となる最新正式リリース: Java Edition 26.2（2026-06-16、data pack format 107.1）

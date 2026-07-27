@@ -66,6 +66,24 @@ RELOAD_COMPLETED_PATTERN = re.compile(
     re.IGNORECASE,
 )
 MAX_MINOR_VERSION = 0x7FFFFFFF
+REPORT_PROVENANCE_FILE = ".datapack-harness-report.json"
+JSON_PARAMETER_FAMILIES = (
+    "item",
+    "dimension/worldgen",
+    "enchantment",
+    "variant",
+    "predicate",
+    "advancement",
+    "loot_table",
+    "recipe",
+    "item_modifier",
+)
+JSON_PARAMETER_BULLET = re.compile(
+    r"^- (?:\*\*)?"
+    r"(item|dimension/worldgen|enchantment|variant|predicate|advancement|"
+    r"loot_table|recipe|item_modifier)"
+    r"(?:\*\*)?:\s+(.+)$"
+)
 
 
 class HarnessError(RuntimeError):
@@ -204,6 +222,35 @@ def extract_ai_rules(path: Path) -> list[str]:
     return rules
 
 
+def extract_markdown_section(path: Path, heading: str) -> str | None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    matches = [index for index, line in enumerate(lines) if line == heading]
+    if len(matches) != 1:
+        return None
+    start = matches[0] + 1
+    end = next(
+        (
+            index
+            for index in range(start, len(lines))
+            if lines[index].startswith("## ")
+        ),
+        len(lines),
+    )
+    return "\n".join(lines[start:end]).strip()
+
+
+def extract_json_parameter_changes(path: Path) -> list[tuple[str, str]]:
+    section = extract_markdown_section(path, "## JSONパラメータ差分")
+    if section is None:
+        return []
+    changes: list[tuple[str, str]] = []
+    for line in section.splitlines():
+        match = JSON_PARAMETER_BULLET.fullmatch(line)
+        if match:
+            changes.append((match.group(1), match.group(2).strip()))
+    return changes
+
+
 def profile_files() -> list[Path]:
     return sorted(
         path
@@ -296,6 +343,25 @@ def validate_profile(
         errors.append(f"{path}: inherits missing profile {parent}")
     if not extract_ai_rules(path):
         errors.append(f"{path}: AI 生成規則 must contain at least one rule")
+    json_parameters = extract_markdown_section(path, "## JSONパラメータ差分")
+    if json_parameters is None:
+        errors.append(f"{path}: expected exactly one JSONパラメータ差分 section")
+    elif not json_parameters:
+        errors.append(f"{path}: JSONパラメータ差分 must not be empty")
+    else:
+        changes = extract_json_parameter_changes(path)
+        counts = {
+            family: sum(label == family for label, _ in changes)
+            for family in JSON_PARAMETER_FAMILIES
+        }
+        invalid_families = [
+            family for family, count in counts.items() if count != 1
+        ]
+        if invalid_families:
+            errors.append(
+                f"{path}: JSONパラメータ差分 must contain exactly one "
+                f"labeled bullet for: {', '.join(invalid_families)}"
+            )
     return errors
 
 
@@ -368,6 +434,15 @@ def resolved_profile_payload(
                 "rules": extract_ai_rules(Path(profile["_path"])),
             }
             for profile in chain[:-1]
+        ],
+        "json_parameter_history": [
+            {
+                "version": profile["version"],
+                "changes": dict(
+                    extract_json_parameter_changes(Path(profile["_path"]))
+                ),
+            }
+            for profile in chain
         ],
         "capability_authority": {
             "commands": "generated/reports/commands.json",
@@ -509,6 +584,20 @@ def run_reports(
         )
     if completed.returncode:
         raise HarnessError(f"data generator exited with {completed.returncode}")
+    output.mkdir(parents=True, exist_ok=True)
+    (output / REPORT_PROVENANCE_FILE).write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "version": version,
+                "server_sha1": sha1_file(jar_path),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def format_tuple(raw: str) -> tuple[int, int]:
@@ -570,6 +659,345 @@ def generated_root(reports: Path) -> Path:
     if (reports / "generated").is_dir():
         return reports / "generated"
     return reports
+
+
+def json_value_type(value: Any) -> str:
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int):
+        return "integer"
+    if isinstance(value, float):
+        return "number"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, dict):
+        return "object"
+    return type(value).__name__
+
+
+def observe_json_fields(
+    value: Any,
+    path: str,
+    observations: dict[str, set[str]],
+) -> None:
+    observations.setdefault(path, set()).add(json_value_type(value))
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}" if path else key
+            observe_json_fields(child, child_path, observations)
+    elif isinstance(value, list):
+        for child in value:
+            observe_json_fields(child, f"{path}[]", observations)
+
+
+def observed_json_shape(files: Iterable[Path], root: Path) -> dict[str, Any]:
+    observations: dict[str, set[str]] = {}
+    examples: list[str] = []
+    invalid: list[str] = []
+    for path in sorted(files):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            invalid.append(path.relative_to(root).as_posix())
+            continue
+        examples.append(path.relative_to(root).as_posix())
+        observe_json_fields(value, "$", observations)
+    payload: dict[str, Any] = {
+        "file_count": len(examples),
+        "examples": examples[:5],
+        "fields": {
+            path: sorted(types)
+            for path, types in sorted(observations.items())
+        },
+    }
+    if invalid:
+        payload["invalid_json"] = invalid
+    return payload
+
+
+def observed_item_defaults(reports_dir: Path, root: Path) -> dict[str, Any]:
+    legacy_items = reports_dir / "items.json"
+    if legacy_items.is_file():
+        try:
+            items = json.loads(legacy_items.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise HarnessError(f"{legacy_items}: invalid JSON: {error}") from error
+        if not isinstance(items, dict):
+            raise HarnessError(f"{legacy_items}: expected an item ID map")
+        observations: dict[str, set[str]] = {}
+        for value in items.values():
+            observe_json_fields(value, "$", observations)
+        return {
+            "file_count": 1,
+            "record_count": len(items),
+            "layout": "reports/items.json item ID map",
+            "examples": sorted(items)[:5],
+            "fields": {
+                path: sorted(types)
+                for path, types in sorted(observations.items())
+            },
+        }
+
+    component_reports = reports_dir / "minecraft" / "components" / "item"
+    files = (
+        list(component_reports.rglob("*.json"))
+        if component_reports.is_dir()
+        else []
+    )
+    payload = observed_json_shape(files, root)
+    payload["record_count"] = payload["file_count"]
+    payload["layout"] = "reports/<namespace>/components/item/<path>.json"
+    return payload
+
+
+def registry_entry_ids(
+    registries: dict[str, Any],
+    registry_id: str,
+) -> list[str]:
+    registry = registries.get(registry_id, {})
+    entries = registry.get("entries", {}) if isinstance(registry, dict) else {}
+    return sorted(entries) if isinstance(entries, dict) else []
+
+
+def build_json_catalog(version: str, reports: Path) -> dict[str, Any]:
+    root = generated_root(reports).resolve()
+    reports_dir = root / "reports"
+    data_root = root / "data" / "minecraft"
+    generated_registry_roots = [
+        data_root,
+        reports_dir / "worldgen" / "minecraft",
+        reports_dir / "minecraft",
+    ]
+    provenance_path = root / REPORT_PROVENANCE_FILE
+    registries_path = reports_dir / "registries.json"
+    datapack_path = reports_dir / "datapack.json"
+    if not provenance_path.is_file():
+        raise HarnessError(
+            "missing report provenance; generate this directory with the "
+            f"`reports` command: {provenance_path}"
+        )
+    try:
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise HarnessError(f"{provenance_path}: invalid JSON: {error}") from error
+    if (
+        not isinstance(provenance, dict)
+        or provenance.get("schema_version") != 1
+        or not isinstance(provenance.get("server_sha1"), str)
+    ):
+        raise HarnessError(f"{provenance_path}: invalid report provenance")
+    report_version = provenance.get("version")
+    if report_version != version:
+        raise HarnessError(
+            f"report version {report_version!r} does not match requested "
+            f"version {version!r}"
+        )
+    if not registries_path.is_file():
+        raise HarnessError(f"missing generated registry report: {registries_path}")
+    if not data_root.is_dir():
+        raise HarnessError(f"missing generated vanilla data: {data_root}")
+
+    try:
+        registries = json.loads(registries_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise HarnessError(f"{registries_path}: invalid JSON: {error}") from error
+    if not isinstance(registries, dict):
+        raise HarnessError(f"{registries_path}: expected an object")
+
+    datapack_registries: dict[str, Any] = {}
+    if datapack_path.is_file():
+        try:
+            datapack = json.loads(datapack_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise HarnessError(f"{datapack_path}: invalid JSON: {error}") from error
+        raw = datapack.get("registries", {}) if isinstance(datapack, dict) else {}
+        if isinstance(raw, dict):
+            datapack_registries = raw
+
+    registry_groups = {
+        "item_component_types": ["minecraft:data_component_type"],
+        "item_component_predicate_types": [
+            "minecraft:data_component_predicate_type"
+        ],
+        "enchantment_effect_component_types": [
+            "minecraft:enchantment_effect_component_type"
+        ],
+        "enchantment_entity_effect_types": [
+            "minecraft:enchantment_entity_effect_type"
+        ],
+        "enchantment_location_effect_types": [
+            "minecraft:enchantment_location_based_effect_type"
+        ],
+        "enchantment_value_effect_types": [
+            "minecraft:enchantment_value_effect_type"
+        ],
+        "enchantment_level_value_types": [
+            "minecraft:enchantment_level_based_value_type"
+        ],
+        "enchantment_provider_types": [
+            "minecraft:enchantment_provider_type"
+        ],
+        "predicate_block_types": ["minecraft:block_predicate_type"],
+        "predicate_entity_sub_types": [
+            "minecraft:entity_sub_predicate_type"
+        ],
+        "predicate_item_sub_types": [
+            "minecraft:item_sub_predicate_type"
+        ],
+        "loot_condition_types": ["minecraft:loot_condition_type"],
+        "loot_function_types": ["minecraft:loot_function_type"],
+        "loot_entry_types": ["minecraft:loot_pool_entry_type"],
+        "loot_number_provider_types": [
+            "minecraft:loot_number_provider_type"
+        ],
+        "loot_nbt_provider_types": ["minecraft:loot_nbt_provider_type"],
+        "loot_score_provider_types": [
+            "minecraft:loot_score_provider_type"
+        ],
+        "advancement_trigger_types": ["minecraft:trigger_type"],
+        "recipe_serializer_types": ["minecraft:recipe_serializer"],
+        "recipe_types": ["minecraft:recipe_type"],
+    }
+    registry_ids: dict[str, list[str]] = {}
+    registry_sources: dict[str, dict[str, str]] = {}
+    for label, candidates in registry_groups.items():
+        values: set[str] = set()
+        registry_sources[label] = {
+            candidate: (
+                "present" if candidate in registries else "unknown"
+            )
+            for candidate in candidates
+        }
+        for candidate in candidates:
+            values.update(registry_entry_ids(registries, candidate))
+        registry_ids[label] = sorted(values)
+
+    worldgen_dispatchers: dict[str, list[str]] = {}
+    for registry_id in sorted(registries):
+        if registry_id.startswith("minecraft:worldgen/"):
+            entries = registry_entry_ids(registries, registry_id)
+            if entries:
+                worldgen_dispatchers[registry_id] = entries
+
+    data_driven_registries = sorted(
+        registry_id
+        for registry_id, metadata in datapack_registries.items()
+        if isinstance(metadata, dict) and metadata.get("elements") is True
+    )
+    generated_variant_registries = {
+        f"minecraft:{path.name}"
+        for path in data_root.iterdir()
+        if path.is_dir() and "variant" in path.name
+    }
+    data_driven_variant_registries = sorted(
+        {
+            registry_id
+            for registry_id in data_driven_registries
+            if "variant" in registry_id
+        }
+        | generated_variant_registries
+    )
+    variant_registries = sorted(
+        {
+            registry_id
+            for registry_id in registries
+            if "variant" in registry_id
+        }
+        | {
+            registry_id
+            for registry_id in datapack_registries
+            if "variant" in registry_id
+        }
+        | generated_variant_registries
+    )
+
+    family_directories: dict[str, list[Path]] = {
+        "advancement": [
+            data_root / "advancement",
+            data_root / "advancements",
+        ],
+        "predicate": [
+            data_root / "predicate",
+            data_root / "predicates",
+        ],
+        "loot_table": [
+            data_root / "loot_table",
+            data_root / "loot_tables",
+        ],
+        "recipe": [
+            data_root / "recipe",
+            data_root / "recipes",
+        ],
+        "item_modifier": [
+            data_root / "item_modifier",
+            data_root / "item_modifiers",
+        ],
+        "dimension": [
+            source_root / "dimension"
+            for source_root in generated_registry_roots
+        ],
+        "dimension_type": [
+            source_root / "dimension_type"
+            for source_root in generated_registry_roots
+        ],
+        "enchantment": [data_root / "enchantment"],
+        "variants": [
+            path
+            for path in data_root.iterdir()
+            if path.is_dir() and "variant" in path.name
+        ],
+        "worldgen": [
+            source_root / "worldgen"
+            for source_root in generated_registry_roots
+        ],
+    }
+    shapes: dict[str, Any] = {}
+    for family, directories in family_directories.items():
+        files = [
+            path
+            for directory in directories
+            if directory.is_dir()
+            for path in directory.rglob("*.json")
+        ]
+        shapes[family] = observed_json_shape(files, root)
+
+    shapes["item_defaults"] = observed_item_defaults(reports_dir, root)
+
+    return {
+        "version": version,
+        "source": {
+            "generated_root": str(root),
+            "provenance": str(provenance_path),
+            "server_sha1": provenance["server_sha1"],
+            "registries": str(registries_path),
+            "datapack": str(datapack_path) if datapack_path.is_file() else None,
+            "vanilla_data": str(data_root),
+            "generated_registry_roots": [
+                str(path) for path in generated_registry_roots if path.is_dir()
+            ],
+        },
+        "registry_ids": registry_ids,
+        "registry_sources": registry_sources,
+        "worldgen_dispatchers": worldgen_dispatchers,
+        "data_driven_registries": data_driven_registries,
+        "variant_registries": variant_registries,
+        "data_driven_variant_registries": data_driven_variant_registries,
+        "observed_shapes": shapes,
+        "coverage": {
+            "registry_ids": "complete for entries exposed by registries.json",
+            "registry_sources": (
+                "present means the source registry is exposed by registries.json; "
+                "unknown means this report does not expose it"
+            ),
+            "observed_shapes": (
+                "fields observed in generated vanilla JSON; not a complete codec schema"
+            ),
+        },
+    }
 
 
 def load_command_roots(reports: Path | None) -> set[str] | None:
@@ -1359,6 +1787,14 @@ def build_parser() -> argparse.ArgumentParser:
     reports.add_argument("--output", type=Path, required=True)
     reports.add_argument("--java", default="java")
 
+    json_catalog = subparsers.add_parser(
+        "json-catalog",
+        help="summarize JSON registries and vanilla fields from generated reports",
+    )
+    json_catalog.add_argument("version")
+    json_catalog.add_argument("--reports", type=Path, required=True)
+    json_catalog.add_argument("--output", type=Path)
+
     validate = subparsers.add_parser("validate-pack", help="run static pack checks")
     validate.add_argument("version")
     validate.add_argument("pack", type=Path)
@@ -1482,6 +1918,15 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
                 profiles,
             )
+            return 0
+        if args.command == "json-catalog":
+            payload = build_json_catalog(args.version, args.reports)
+            rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(rendered, encoding="utf-8")
+            else:
+                print(rendered, end="")
             return 0
         if args.command == "validate-pack":
             return print_validation(

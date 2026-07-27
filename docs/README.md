@@ -25,37 +25,38 @@
 | [`versions/<version>.md`](versions/README.md) | そのゲームバージョンの確定プロファイル、前バージョンとの差分、互換性 |
 | [`ai-authoring.md`](ai-authoring.md) | AIがバージョンを解決し、ファイルを生成する決定手順 |
 | [`commands.md`](commands.md) | `.mcfunction` の書式、引数、実行文脈、コマンドのバージョン境界 |
+| [`json-parameters/README.md`](json-parameters/README.md) | 主要なデータ駆動JSONの値の意味、全正式リリース境界、JARカタログ |
 | [`execution-model.md`](execution-model.md) | executor、位置、分岐、function結果、load/tick/scheduleの細かな挙動 |
 | [`state-management.md`](state-management.md) | scoreboard、storage、entity tag、永続性、migration |
 | [`advancements.md`](advancements.md) | criteria、requirements、reward、grant/revoke、player event |
 | [`json-formats.md`](json-formats.md) | `pack.mcmeta` と全データ種別の配置・JSON/SNBT の基本形 |
 | [`content-hooks.md`](content-hooks.md) | 追加block/entity/itemと観測・制御手段、データパック企画の着眼点 |
 | [`gameplay-requirements.md`](gameplay-requirements.md) | 共同eventを例にした複合要件の可否、状態遷移、競合、cleanup |
-| [`implementation-patterns.md`](implementation-patterns.md) | 状態機械、timer、event queue、API、性能、testの中上級パターン |
+| [`implementation-patterns.md`](implementation-patterns.md) | 状態機械、timer、event queue、API、性能、testの実装パターン |
 | [`harness.md`](harness.md) | バージョン解決、JAR/SHA-1、report生成、静的検査、server reloadの実行方法 |
 | [`compatibility.md`](compatibility.md) | 後方互換、前方互換、overlay、移行方針 |
 | [`validation.md`](validation.md) | 公式 JAR から正確なコマンド木・レジストリ・vanilla JSON を得る方法 |
 | [`sources.md`](sources.md) | 採用した一次資料と Minecraft Wiki の使い分け |
 
-## 習熟度別の経路
+## 目的別の参照経路
 
-### 基本
+### 最小pack
 
-`versions/<version>.md` → `commands.md` → `json-formats.md` → `validation.md`
+`versions/<version>.md` → `commands.md` → `json-formats.md` → `json-parameters/README.md` → `validation.md`
 
-対象バージョンで読み込める最小packを作り、構文・配置・JSON codecを確認します。
+対象バージョンで読み込める最小packを作り、構文・配置・JSON codecを確認します。各JSON familyは、パラメータ索引でデータ型とgameplay判定を分けてから対象版のfieldを選びます。
 
-### 中級
+### 状態を持つpack
 
 上記に `execution-model.md`、`state-management.md`、`advancements.md` を加えます。
 
 player別状態、event駆動、timer、function結果、reload・再起動後の永続性まで設計します。
 
-### 上級
+### 複合要件を持つpack
 
 `content-hooks.md` からvanilla gameplay要素を選び、複合要件は `gameplay-requirements.md` で可否を判定し、`implementation-patterns.md` に従ってmigration、API、性能上限、GameTestを含めます。
 
-上級の完了条件は「構文が通る」だけでなく、対象0件・複数対象・chunk unload・multiplayer・旧world更新で挙動が定義されていることです。
+完了条件は「構文が通る」だけでなく、対象0件・複数対象・chunk unload・multiplayer・旧world更新で挙動が定義されていることです。
 
 ## 実行ハーネス
 
@@ -85,7 +86,8 @@ project設定、公式JARの任意取得、report生成、pack静的検査、ser
 |---|---:|---|
 | 1.13 | 4 | データパック正式導入、Brigadier ベースのコマンド体系 |
 | 1.15 | 5 | predicate JSON |
-| 1.16.2 | 6 | カスタム dimension/worldgen の試験的データ駆動化 |
+| 1.16 | 5 | カスタムdimension/dimension typeの初期experimental schema |
+| 1.16.2 | 6 | カスタムworldgen registry folder群を拡大 |
 | 1.17 | 7 | `/replaceitem` を `/item` へ置換 |
 | 1.18.2 | 9 | configured structure と `/locate` の変更 |
 | 1.19 | 10 | `pack.mcmeta` filter、`/place`、`/locatebiome` 統合 |

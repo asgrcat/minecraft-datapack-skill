@@ -38,6 +38,7 @@ python3 tools/datapack_harness.py profiles
 - filenameとversionの一致
 - `inherits` の参照、循環、単一chain
 - `AI 生成規則` の存在
+- `JSONパラメータ差分` の存在と、item・dimension/worldgen・enchantment・variant・predicate・advancement・loot_table・recipe・item_modifier各1件のlabel付きbullet
 - `profile.schema.json` のJSON構文
 
 front matterのschemaは [`versions/profile.schema.json`](versions/profile.schema.json) です。Markdown本文の任意見出しを機械可読な差分fieldとして扱いません。
@@ -54,12 +55,13 @@ JSON出力:
 - 1.13から対象バージョンまでのinheritance chain
 - 対象バージョンだけの `active_ai_rules`
 - 過去バージョンの参考履歴 `rule_history`（対象バージョンへ適用しない）
+- 1.13から対象版までのfamily別追加・変更・削除・互換性 `json_parameter_history`（各版の`changes`は9 familyのobject）
 - command/registry/vanilla dataの正本path
 - server検査に必要なJava major
 
 versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock Edition、近似semverを受け付けません。
 
-`rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。対象バージョンで使用可能なcommand、registry、vanilla resourceは、自然言語規則ではなく対象バージョンのreport/dataで決定します。
+`rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。`json_parameter_history`は版別プロファイルの差分を時系列で提示しますが、対象バージョンで使用可能なcommand、registry、vanilla resourceは自然言語だけで合成せず、対象バージョンのreport/dataで決定します。
 
 ## 3. 公式server JAR
 
@@ -95,6 +97,8 @@ python3 tools/datapack_harness.py reports 1.20.5 \
 
 data generatorは自動削除される一時working directoryで実行します。bundlerが展開する `libraries/`、`versions/`、`logs/` はリポジトリへ残りません。`--output` は起動時のdirectoryを基準に絶対pathへ解決します。
 
+生成成功時にはoutput rootへ `.datapack-harness-report.json` を保存し、正式リリースIDと検証済みserver JARのSHA-1を記録します。`json-catalog`はこのprovenanceを必須とし、CLIのversionと一致しないreportを拒否します。
+
 必要Java major:
 
 | 正式リリース | Java |
@@ -107,7 +111,28 @@ data generatorは自動削除される一時working directoryで実行します�
 
 ハーネスは必要majorを表示します。複数JDKがある環境では `--java` へ対象バージョン用の実行ファイルを指定します。
 
-## 5. pack静的検査
+## 5. JSONパラメータカタログ
+
+data generatorの出力から、対象バージョン固有のitem component、enchantment effect、variant、worldgen、predicate、advancement trigger、loot、recipeのtype IDと、vanilla JSONで観測できるfield pathを集計します。
+
+```bash
+python3 tools/datapack_harness.py json-catalog 1.21.11 \
+  --reports build/1.21.11/generated \
+  --output build/1.21.11/json-catalog.json
+```
+
+`registry_ids`と`worldgen_dispatchers`は、`registries.json`に公開されたentry IDを列挙します。`registry_sources`は、各`registry_ids` groupの参照元registryを`present`（reportに公開）または`unknown`（このreportでは未公開）で示します。`observed_shapes`は`generated/data/minecraft/`、旧版の`generated/reports/{worldgen/,}minecraft/`、item reportにあるvanilla例を走査し、JSON pathごとに実際に現れた型を出力します。先行する`reports` commandが記録したversionとserver JAR SHA-1も出力へ含めます。
+
+用途:
+
+- source registryが`present`のgroupで、対象バージョンにcomponent/effect/feature/condition/function/trigger/recipe typeが公開されているか確認
+- 主要JSON familyのvanilla使用fieldを検索
+- 境界バージョン間でregistry IDと観測fieldを機械比較
+- 手書き例を作る前に同型のvanilla fileを特定
+
+`registry_ids`が空でも、`registry_sources`が`unknown`なら非対応とは確定できません。`source.datapack`が`null`の版では、空の`data_driven_registries`も「追加可能なregistryなし」ではなくreport未公開です。`observed_shapes`はcodec schemaではありません。vanillaが使用しない任意field、条件付き必須field、値域、排他的な組合せは出力から確定できないため、[`json-parameters/README.md`](json-parameters/README.md)のfamily別説明とserver検査を併用します。
+
+## 6. pack静的検査
 
 ```bash
 python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
@@ -139,7 +164,7 @@ python3 tools/datapack_harness.py validate-pack 1.20.5 path/to/pack \
 
 consumer CIの最小levelは `static` です。`generated` levelの自動化は整備中であり、生成だけをCI成功の証拠にはしません。
 
-## 6. server起動とreload
+## 7. server起動とreload
 
 ```bash
 python3 tools/datapack_harness.py server-test 1.20.5 path/to/pack \

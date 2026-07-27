@@ -1,6 +1,6 @@
 # 進捗とplayer event
 
-この文書はadvancementを、表示上の進捗だけでなくplayer単位の永続状態とevent入口として利用する方法を扱います。JSONの基本形は [`json-formats.md`](json-formats.md)、状態全体の選択は [`state-management.md`](state-management.md) を参照してください。
+この文書はadvancementを、表示上の進捗だけでなくplayer単位の永続状態とevent入口として利用する方法を扱います。JSONの基本形は [`json-formats.md`](json-formats.md)、版別parameterは[`json-parameters/advancements.md`](json-parameters/advancements.md)、共有predicateは[`json-parameters/predicates.md`](json-parameters/predicates.md)、状態全体の選択は [`state-management.md`](state-management.md) を参照してください。
 
 ## 配置とモデル
 
