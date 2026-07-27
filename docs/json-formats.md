@@ -1,6 +1,6 @@
 # JSON、SNBT、データ種別
 
-この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンのフィールド定義の実例として併用します。item、dimension/worldgen、enchantment、variantのパラメータの意味と版別索引は[`json-parameters/README.md`](json-parameters/README.md)から参照します。
+この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンのフィールド定義の実例として併用します。item、dimension/worldgen、enchantment、variantのパラメータの意味とバージョン別索引は[`json-parameters/README.md`](json-parameters/README.md)から参照します。
 
 ## JSON と SNBT を混同しない
 
@@ -250,7 +250,7 @@ data/example/tags/blocks/mineable.json         # 1.20.6以前
 
 ## advancement
 
-root、criteria、trigger、requirements、rewardsのparameterと版境界は[`json-parameters/advancements.md`](json-parameters/advancements.md)を参照してください。
+root、criteria、trigger、requirements、rewardsのparameterとバージョン境界は[`json-parameters/advancements.md`](json-parameters/advancements.md)を参照してください。
 
 criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復eventへの利用は [`advancements.md`](advancements.md) を参照してください。
 
@@ -315,7 +315,7 @@ criteria/requirementsのAND・OR、rewardの実行、grant/revoke、反復event�
 
 ## predicate
 
-独立predicate、loot condition、entity/location/item/block predicateの型と版境界は[`json-parameters/predicates.md`](json-parameters/predicates.md)を参照してください。
+独立predicate、loot condition、entity/location/item/block predicateの型とバージョン境界は[`json-parameters/predicates.md`](json-parameters/predicates.md)を参照してください。
 
 predicate file は単一の loot condition、または暗黙の `all_of` となる配列です。
 
@@ -355,7 +355,7 @@ predicate の有効な loot context parameter は呼出場所に依存します�
 
 ## item modifier
 
-loot functionとの共有codec、実行context、版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
+loot functionとの共有codec、実行context、バージョン境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
 
 単一 loot function object または、順に適用する配列です。
 
@@ -385,7 +385,7 @@ item modify entity @s weapon.mainhand example:reward
 
 ## loot table
 
-root、pool、entry、condition、function、provider、contextのparameterと版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
+root、pool、entry、condition、function、provider、contextのparameterとバージョン境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
 
 ```json
 {
@@ -432,7 +432,7 @@ root、pool、entry、condition、function、provider、contextのparameterと�
 
 ## recipe
 
-主要serializer、ingredient、result、category、componentの版境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
+主要serializer、ingredient、result、category、componentのバージョン境界は[`json-parameters/loot-recipes.md`](json-parameters/loot-recipes.md)を参照してください。
 
 ### shaped crafting: 1.20.4 以前
 

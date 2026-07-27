@@ -50,9 +50,9 @@ Java の必要バージョンもゲームバージョンに合わせます。代
 |---|---|
 | `generated/reports/commands.json` | literal、argument parser、分岐、実行可能な全 command tree |
 | `generated/reports/registries.json` | data generatorがこのreportに公開するregistryとentry ID |
-| `generated/reports/datapack.json` | 対応版で生成される場合、data packから追加できるregistryと配置 |
+| `generated/reports/datapack.json` | 対応バージョンで生成される場合、data packから追加できるregistryと配置 |
 | block/item 等の report | block state、item、protocol/data の照合 |
-| `generated/data/minecraft/` | 対象バージョンcodecが実際に読むvanilla tag/recipe/advancement/worldgenの例。旧版のworldgen例はreport側へ出る場合がある |
+| `generated/data/minecraft/` | 対象バージョンのcodecが実際に読むvanilla tag/recipe/advancement/worldgenの例。旧バージョンのworldgen例はreport側へ出る場合がある |
 
 出力名は古いバージョンで異なる場合があります。まず引数なしで data generator の help を表示し、そのバージョンの `--reports`/`--server` を確認します。
 

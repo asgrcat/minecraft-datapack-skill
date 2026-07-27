@@ -17,7 +17,7 @@ Minecraft では複数の異なる値が predicate と呼ばれます。
 | item predicate | item stack の item ID、count、NBT/component 等を照合する入れ子の値 | 単独では不可。通常は `match_tool.predicate` 等に入る |
 | gameplay block predicate | location 内の block、state、block entity data/component 等を照合する値 | 単独では不可 |
 | worldgen block predicate | configured feature 等で block 配置可否を判定する `predicate_type` dispatcher | 独立 predicate resource とは別系統 |
-| advancement の条件 | trigger 固有条件。版によって entity check 等に loot condition listを利用 | trigger 全体は独立 predicate ではない |
+| advancement の条件 | trigger 固有条件。バージョンによって entity check 等に loot condition listを利用 | trigger 全体は独立 predicate ではない |
 | enchantment の `requirements` | enchantment effect を適用する inline loot condition | 独立 resource参照とは限らない |
 
 次の JSON は entity predicate ではなく、entity predicate を内包した loot condition です。
@@ -131,7 +131,7 @@ loot condition 内から参照する場合は `minecraft:reference` を使いま
 
 1.20 では旧 `minecraft:alternative` が `minecraft:any_of` へ置換され、`minecraft:all_of` が追加されました。1.20.2 以降は condition list を inline arrayとして書ける場所がありますが、許可される省略形は外側の codecごとに確認が必要です。top-level array、`terms`、loot function の condition listを同じ構文として扱いません。
 
-循環する `reference`、存在しないID、対象版に存在しない condition typeは利用可能な合成方法ではありません。
+循環する `reference`、存在しないID、対象バージョンに存在しない condition typeは利用可能な合成方法ではありません。
 
 ## loot context
 
@@ -157,7 +157,7 @@ condition が JSON として読み込めることと、利用場所の context p
 
 ## 主要 loot condition
 
-次は複数バージョンで中心となる conditionです。fieldの必須性、短縮形、number providerの許容typeは対象版で確定します。
+次は複数バージョンで中心となる conditionです。fieldの必須性、短縮形、number providerの許容typeは対象バージョンで確定します。
 
 | condition | 主要 field | 判定 |
 |---|---|---|
@@ -174,7 +174,7 @@ condition が JSON として読み込めることと、利用場所の context p
 | `minecraft:time_check` | `value`, `period?` | game timeまたは周期内時刻 |
 | `minecraft:weather_check` | `raining?`, `thundering?` | 天候 |
 | `minecraft:value_check` | `value`, `range` | number providerの結果 |
-| `minecraft:survives_explosion` | 版依存 | explosionからdropが生存する確率 |
+| `minecraft:survives_explosion` | バージョン依存 | explosionからdropが生存する確率 |
 | `minecraft:enchantment_active_check` | `active` | enchantment effectのactive状態。1.21以降 |
 | `minecraft:environment_attribute_check` | 対象attributeと照合値 | environment attributeを照合。26.1追加 |
 
@@ -188,7 +188,7 @@ condition が JSON として読み込めることと、利用場所の context p
 
 | field | 照合対象 |
 |---|---|
-| `type` | entity type。対応版ではID、ID list、entity type tag |
+| `type` | entity type。対応バージョンではID、ID list、entity type tag |
 | `distance` | originからのabsolute/horizontal/x/y/z距離range |
 | `location`, `stepping_on` | entity位置、足元位置のlocation predicate |
 | `effects` | status effectとamplifier/duration等 |
@@ -205,7 +205,7 @@ condition が JSON として読み込めることと、利用場所の context p
 
 #### 1.19〜26.1.2 の `type_specific`
 
-1.19 ではentity固有条件が `type_specific` に集約されました。1.19.3では axolotl、boat、fox、mooshroom、painting、rabbit、horse、llama、villager、parrot、tropical fish 等のsub-predicateが追加されました。その後の版でもvariantやentity component化に伴ってtype集合が変化しています。
+1.19 ではentity固有条件が `type_specific` に集約されました。1.19.3では axolotl、boat、fox、mooshroom、painting、rabbit、horse、llama、villager、parrot、tropical fish 等のsub-predicateが追加されました。その後のバージョンでもvariantやentity component化に伴ってtype集合が変化しています。
 
 概念上の形は次のとおりです。
 
@@ -278,13 +278,13 @@ location predicateは「dimensionを生成するJSON」ではなく、ある座�
 |---|---|
 | `position` | x/y/z座標range |
 | `dimension` | dimension ID |
-| `biome` / `biomes` | biome ID、対応版ではlist/tag |
-| `feature` / `structure` / `structures` | configured featureまたはstructure。版により意味と名称が異なる |
+| `biome` / `biomes` | biome ID、対応バージョンではlist/tag |
+| `feature` / `structure` / `structures` | configured featureまたはstructure。バージョンにより意味と名称が異なる |
 | `smokey` | campfireの煙が届く位置か |
 | `light` | light level range |
 | `block` | gameplay block predicate |
 | `fluid` | fluid predicate |
-| `can_see_sky` | 空が見えるか。対応版のみ |
+| `can_see_sky` | 空が見えるか。対応バージョンのみ |
 
 重要な境界は次です。
 
@@ -305,7 +305,7 @@ item predicateはitem stackを判定し、recipe ingredientやitem stack生成�
 
 ### 1.17〜1.20.4
 
-1.17で `item` が `items` へ変わり、複数item IDを受け付けます。後続版でもitem NBTを基準にする旧形式が続きます。
+1.17で `item` が `items` へ変わり、複数item IDを受け付けます。後続バージョンでもitem NBTを基準にする旧形式が続きます。
 
 ### 1.20.5以降
 
@@ -332,7 +332,7 @@ item predicateはitem stackを判定し、recipe ingredientやitem stack生成�
 
 | field | 意味 |
 |---|---|
-| `items` | item ID、item ID list、対応版では`#item_tag` |
+| `items` | item ID、item ID list、対応バージョンでは`#item_tag` |
 | `components` | 指定componentの完全値一致 |
 | `predicates` | component固有sub-predicate |
 | `count` | stack countの整数またはrange |
@@ -368,7 +368,7 @@ location predicate、advancement、item component等で使うblock predicateは�
 
 | field | 照合対象 |
 |---|---|
-| `block` / `blocks` | block ID。対応版ではlist/tag |
+| `block` / `blocks` | block ID。対応バージョンではlist/tag |
 | `tag` | 旧形式のblock tag指定 |
 | `state` | block state property |
 | `nbt` | block entity NBT |
@@ -479,7 +479,7 @@ would_survive
 
 ## 検証
 
-### 1. 対象版のregistry IDを列挙
+### 1. 対象バージョンのregistry IDを列挙
 
 ```bash
 python3 tools/datapack_harness.py reports 26.2 \

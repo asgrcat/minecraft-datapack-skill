@@ -31,7 +31,7 @@ JSONは「Minecraftのあらゆる物を自由に定義できる設定ファイ�
 
 ## バージョン別の選択表
 
-`継承`は、そのfamily固有の破壊的変更がこの索引と版別プロファイルに記録されていないことを表します。同じ完全schemaを保証する記号ではないため、各正式リリースのJARでも確認します。
+`継承`は、そのfamily固有の破壊的変更がこの索引とバージョン別プロファイルに記録されていないことを表します。同じ完全schemaを保証する記号ではないため、各正式リリースのJARでも確認します。
 
 追加・変更・削除・互換性の履歴は各`versions/<version>.md`の`JSONパラメータ差分`を正本とします。次の表はfamily境界を横断して探すための索引です。
 
@@ -92,7 +92,7 @@ JSONは「Minecraftのあらゆる物を自由に定義できる設定ファイ�
 
 ### event・条件・生成resource
 
-patch版を含む全正式リリースの履歴は各versionページにあります。次はschema選択に直接影響する境界です。
+patchリリースを含む全正式リリースの履歴は各versionページにあります。次はschema選択に直接影響する境界です。
 
 | 正式リリース | predicate | advancement | loot table | recipe | item modifier |
 |---|---|---|---|---|---|
@@ -154,7 +154,7 @@ python3 tools/datapack_harness.py json-catalog 1.21.11 \
 | `observed_shapes` | dimension、dimension type、advancement、predicate、loot table、recipe、item modifier等のvanilla JSONで観測したfield pathとJSON型 |
 
 registry ID一覧はreportに公開された範囲で完全です。空の`registry_ids`は、対応する`registry_sources`がすべて`present`なら「公開entryが0件」、`unknown`なら「このreportからは判定不能」です。`source.datapack`が`null`の場合も、空の`data_driven_registries`だけからpack定義不可とは判定しません。`observed_shapes`はcodec schemaではなくvanilla利用例の集計なので、必須・任意、値域、排他的fieldは各資料と実際のreloadで確定します。
-vanilla生成物に独立predicateやitem modifierがない版では、対応する`file_count`が0になります。resource非対応を意味する値ではないため、type ID、正式リリースノート、独自最小例のreloadも確認します。
+vanilla生成物に独立predicateやitem modifierがないバージョンでは、対応する`file_count`が0になります。resource非対応を意味する値ではないため、type ID、正式リリースノート、独自最小例のreloadも確認します。
 
 ## 実装前の確認
 
@@ -162,8 +162,8 @@ vanilla生成物に独立predicateやitem modifierがない版では、対応す
 [ ] 対象の正式リリースを完全一致で決めた
 [ ] 変更したいものがitem stack、registry entry、client resourceのどれか説明できる
 [ ] 表示だけの値とgameplay判定を分けた
-[ ] 同じtypeの対象版vanilla JSONを基底にした
-[ ] registry/tag参照先が対象版に存在する
+[ ] 同じtypeの対象バージョンのvanilla JSONを基底にした
+[ ] registry/tag参照先が対象バージョンに存在する
 [ ] 新規worldまたは未生成chunkが必要な変更を/reloadだけで判定していない
 [ ] multiplayer、upgrade、別packとの上書き競合を確認した
 [ ] JSON parse成功と、意図したgameplay結果を別々に検査した

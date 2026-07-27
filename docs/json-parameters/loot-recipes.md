@@ -84,7 +84,7 @@ loot tableを、実際の呼出元が作るloot contextで開始
 
 root `type`はloot tableを呼ぶeventを選びません。`minecraft:block`と書いてもblockから自動dropせず、実際にblock lootとして呼ばれるID・参照が必要です。反対に、block contextで呼ぶtableへ`minecraft:chest`を指定すると、`tool`や`block_state`等の検証がずれます。
 
-主なcontext typeは版ごとに増えます。代表例は`empty`、`chest`、`fishing`、`entity`、`equipment`、`block`、`advancement_reward`、`gift`、`barter`、`archaeology`、`shearing`です。1.21.9以降にはinteraction系、1.21.11のvanilla dataには`block_interact`と`entity_interact`も現れます。利用可能なIDとparameter集合は対象JARで確認します。
+主なcontext typeはバージョンごとに増えます。代表例は`empty`、`chest`、`fishing`、`entity`、`equipment`、`block`、`advancement_reward`、`gift`、`barter`、`archaeology`、`shearing`です。1.21.9以降にはinteraction系、1.21.11のvanilla dataには`block_interact`と`entity_interact`も現れます。利用可能なIDとparameter集合は対象JARで確認します。
 
 ### pool
 
@@ -110,7 +110,7 @@ literal numberはconstant providerの短縮形として使える場所があり�
 }
 ```
 
-number providerは同じようなobjectでも、整数を要求する`rolls`、浮動小数を許す確率・damage・enchantment level等でcodecが異なります。代表typeにはconstant、uniform、binomial、score、storage等がありますが、追加時期、field名、許容値は対象版のregistry/JARで決めます。
+number providerは同じようなobjectでも、整数を要求する`rolls`、浮動小数を許す確率・damage・enchantment level等でcodecが異なります。代表typeにはconstant、uniform、binomial、score、storage等がありますが、追加時期、field名、許容値は対象バージョンのregistry/JARで決めます。
 
 ### entryの共通field
 
@@ -129,13 +129,13 @@ number providerは同じようなobjectでも、整数を要求する`rolls`、�
 | `type` | 主なfield | 結果・注意 |
 |---|---|---|
 | `minecraft:item` | `name`: item ID | 指定itemのstackを候補へ追加。個数やcomponentはfunctionで変更 |
-| `minecraft:tag` | `name`: item tag ID、`expand` | `expand:true`ならtag要素を個別のweighted候補として展開する。false側の生成単位は対象版で確認 |
+| `minecraft:tag` | `name`: item tag ID、`expand` | `expand:true`ならtag要素を個別のweighted候補として展開する。false側の生成単位は対象バージョンで確認 |
 | `minecraft:loot_table` | 参照先table | 別tableの結果を展開。1.18.2/1.19のvanillaは`name`、1.20.5以降のvanillaは`value`を使用 |
 | `minecraft:dynamic` | `name` | 呼出元が提供するdynamic dropを得る。任意IDの保存領域ではない |
 | `minecraft:empty` | 追加fieldなし | 「何も生成しない」候補。weightを持たせて外れを作れる |
 | `minecraft:slots` | `slot_source` | 1.21.11追加。選択slot内のitemを候補へ供給 |
 
-`minecraft:loot_table`の参照fieldのように、entry typeは同じでも版境界でfieldが変わります。最新例の`value`を1.19へ、旧例の`name`を1.20.5へ無条件で移さないでください。
+`minecraft:loot_table`の参照fieldのように、entry typeは同じでもバージョン境界でfieldが変わります。最新例の`value`を1.19へ、旧例の`name`を1.20.5へ無条件で移さないでください。
 
 1.21.11の`minecraft:slots`はslot source codecを使います。slot sourceはentity/block entity、slot range、filter、結合、item内contents等を表せますが、standalone registry resourceとは限りません。26.3以降の配置やtypeを26.2へ先取りしません。
 
@@ -151,7 +151,7 @@ number providerは同じようなobjectでも、整数を要求する`rolls`、�
 
 ### condition
 
-loot table、pool、entry、functionの`conditions`はloot condition objectの配列です。配列は原則としてすべて成立を要求します。ORは対象版の合成conditionを明示します。
+loot table、pool、entry、functionの`conditions`はloot condition objectの配列です。配列は原則としてすべて成立を要求します。ORは対象バージョンの合成conditionを明示します。
 
 ```json
 {
@@ -177,7 +177,7 @@ loot table、pool、entry、functionの`conditions`はloot condition objectの�
 | 合成 | `inverted`, `any_of`, `all_of` | 子conditionが要求するparameterの和集合 |
 | 再利用 | `reference` | predicate resourceと、その内部が要求するparameter |
 
-1.20で旧`alternative` conditionを`any_of`へ移し、`all_of`も明示的な合成に使います。1.20.2では`all_of`のinline配列表現など周辺codecが変わるため、対象版vanilla例へ合わせます。
+1.20で旧`alternative` conditionを`any_of`へ移し、`all_of`も明示的な合成に使います。1.20.2では`all_of`のinline配列表現など周辺codecが変わるため、対象バージョンのvanilla例へ合わせます。
 
 26.2ではcondition内に埋め込むentity predicateがcomponent-map形式へ変わります。
 
@@ -215,11 +215,11 @@ function objectは`function`でtypeを選び、そのtype固有fieldと任意の
 
 | 目的 | 代表type | 主な注意 |
 |---|---|---|
-| 個数・damage | `set_count`, `limit_count`, `set_damage` | literal/number provider、`add`、値域を対象版で確認 |
+| 個数・damage | `set_count`, `limit_count`, `set_damage` | literal/number provider、`add`、値域を対象バージョンで確認 |
 | enchant | `enchant_randomly`, `enchant_with_levels`, `set_enchantments` | tool/contextに依存するfunctionと、出力stackだけを変更するfunctionを区別 |
 | 表示・component | `set_name`, `set_lore`, `set_components`, `copy_components` | text/component形式は1.20.5、1.21.5等の境界に従う |
-| 内容物 | `set_contents`, `set_loot_table`, `modify_contents` | block entity typeやcontainer componentの版境界がある |
-| NBT/custom data | `set_nbt`, `copy_nbt`、後続版の`set_custom_data`, `copy_custom_data` | 1.20.5で旧item NBT functionを移行 |
+| 内容物 | `set_contents`, `set_loot_table`, `modify_contents` | block entity typeやcontainer componentのバージョン境界がある |
+| NBT/custom data | `set_nbt`, `copy_nbt`、後続バージョンの`set_custom_data`, `copy_custom_data` | 1.20.5で旧item NBT functionを移行 |
 | 制御・再利用 | `reference`, `sequence`, `filtered`, `discard` | 子functionの順序、分岐、追加時期を確認 |
 
 1.20.5ではitem stackのdata component化に合わせ、`set_nbt→set_custom_data`、`copy_nbt→copy_custom_data`へ移し、`set_components`、`copy_components`、`modify_contents`等を使います。`set_custom_data`は任意custom marker用です。既存の標準componentをcustom dataへ複製しても、その標準機能は有効になりません。
@@ -264,7 +264,7 @@ loot contextはJSONに保存された万能変数mapではなく、呼出元が�
 
 `entity:"this"`は常にcommand executorという意味ではありません。`/loot`のsource、block/entityの自然drop、advancement reward、`/item modify`は異なるcontextを作ります。
 
-root `type:"minecraft:generic"`または省略は、多くの版でload時のcontext検査を弱めます。実行時に`tool`、`block_state`、`this`等を補充する指定ではないため、警告を消す目的でgenericへ変更しないでください。
+root `type:"minecraft:generic"`または省略は、多くのバージョンでload時のcontext検査を弱めます。実行時に`tool`、`block_state`、`this`等を補充する指定ではないため、警告を消す目的でgenericへ変更しないでください。
 
 ### `random_sequence`
 
@@ -325,7 +325,7 @@ item modify entity @s weapon.mainhand example:reward
 - `set_count`等で不正なstack sizeを作った場合のclamp・分割・失敗を推測しない
 - 同じstackへ複数functionを適用するため、順序が結果へ影響する
 - 1.20.5より前は旧item NBT、以降はdata componentを使うfunctionへ移行する
-- 1.21.11の`filtered`、26.2のentity/component predicateは旧版のitem modifierへ逆輸入しない
+- 1.21.11の`filtered`、26.2のentity/component predicateは旧バージョンのitem modifierへ逆輸入しない
 
 loot function `reference`からitem modifierを呼ぶ場合も、参照先が新しいcontextを作るわけではありません。参照元のcontextを引き継ぐので、参照先が要求するparameterを含めて検証します。
 
@@ -340,7 +340,7 @@ recipe rootの`type`はserializerを選びます。serializerごとに必須fiel
 | `category` | type別enum | recipe book内の分類 | crafting結果のrarityや用途を変更しない |
 | `show_notification` | boolean | unlock通知の表示を制御。1.19.4のshaped recipeから始まり、26.1で主要serializerへ拡大 | recipeの存在、unlock条件、出力を無効化しない |
 | `ingredient` / `ingredients` / `key` | ingredient codec | 許容item ID/tagを指定 | 通常のingredientは完全なitem predicateではない |
-| `result` | 版・serializer依存 | 出力itemまたは変換先 | 全版・全typeで同じobjectではない |
+| `result` | バージョン・serializer依存 | 出力itemまたは変換先 | 全バージョン・全typeで同じobjectではない |
 
 recipe IDはrecipe book、advancementのrecipe参照、commandの`recipe give/take`等にも使われます。同じresource IDを別packで定義すると優先順位により置換され、2つの定義が自動mergeされません。
 
@@ -360,7 +360,7 @@ recipe IDはrecipe book、advancementのrecipe参照、commandの`recipe give/ta
 }
 ```
 
-複数候補を許す場所ではingredient objectの配列を受ける版があります。
+複数候補を許す場所ではingredient objectの配列を受けるバージョンがあります。
 
 1.21.2以降:
 
@@ -383,7 +383,7 @@ recipe IDはrecipe book、advancementのrecipe参照、commandの`recipe give/ta
 
 通常のrecipe ingredientが検査するのはitem ID/tagへの所属です。1.20.5以降も任意の`components` patch、count、loot conditionをingredientへ書けるという意味ではありません。component付き入力を区別する処理は、対応するspecial serializer、hardcoded behavior、または別のadvancement/function設計が必要です。
 
-空tag、空配列、`minecraft:air`を「空slot」の代用にしません。shaped craftingの空slotはpatternのspaceで表します。特定版のsmithingが空配列を特別扱いした履歴があっても、別版・別fieldへ一般化しません。
+空tag、空配列、`minecraft:air`を「空slot」の代用にしません。shaped craftingの空slotはpatternのspaceで表します。特定バージョンのsmithingが空配列を特別扱いした履歴があっても、別バージョン・別fieldへ一般化しません。
 
 ### result
 
@@ -450,12 +450,12 @@ result表現は最も移植事故が多い部分です。
 |---|---|---|
 | `pattern` | 必須 | 1〜3行、各行1〜3文字の矩形。spaceは空slot |
 | `key` | 必須 | patternで使うspace以外の1文字をingredientへ対応付ける |
-| `result` | 必須 | 対象版のresult型 |
+| `result` | 必須 | 対象バージョンのresult型 |
 | `category` | 任意 | craftingでは代表的に`building`, `redstone`, `equipment`, `misc` |
 | `group` | 任意 | recipe book上のまとめ名 |
 | `show_notification` | 1.19.4以降任意 | unlock toast制御 |
 
-行幅を揃え、patternで使う記号をすべて`key`に定義します。spaceを`key`へ定義しません。左右・上下の余分な空白を含めたpatternの正規化や拒否は版のcodecで確認し、見えない末尾spaceへ依存しない例を優先します。
+行幅を揃え、patternで使う記号をすべて`key`に定義します。spaceを`key`へ定義しません。左右・上下の余分な空白を含めたpatternの正規化や拒否はバージョンのcodecで確認し、見えない末尾spaceへ依存しない例を優先します。
 
 ### shapeless crafting
 
@@ -496,7 +496,7 @@ result表現は最も移植事故が多い部分です。
 | key | 意味 |
 |---|---|
 | `ingredient` | 入力slotのingredient |
-| `result` | 対象版・typeのresult |
+| `result` | 対象バージョン・typeのresult |
 | `experience` | 完了時に蓄積する経験値量 |
 | `cookingtime` | tick単位の処理時間 |
 | `category` | cookingでは代表的に`food`, `blocks`, `misc` |
@@ -517,7 +517,7 @@ result表現は最も移植事故が多い部分です。
 }
 ```
 
-入力候補と出力stackを定義します。shaped pattern、cookingtime、経験値は取りません。category/groupの対応は対象版のvanilla例とcodecに限定します。
+入力候補と出力stackを定義します。shaped pattern、cookingtime、経験値は取りません。category/groupの対応は対象バージョンのvanilla例とcodecに限定します。
 
 ### smithing
 
@@ -525,7 +525,7 @@ result表現は最も移植事故が多い部分です。
 |---|---|---|
 | 1.16〜1.19.4 | `minecraft:smithing` | `base`, `addition`, `result` |
 | 1.20〜26.2 | `minecraft:smithing_transform` | `template`, `base`, `addition`, `result` |
-| 1.20〜26.2 | `minecraft:smithing_trim` | `template`, `base`, `addition`、後続版の`pattern` |
+| 1.20〜26.2 | `minecraft:smithing_trim` | `template`, `base`, `addition`、後続バージョンの`pattern` |
 
 1.20のtemplate-based smithingは旧`minecraft:smithing`の単純field追加ではなくserializerの置換です。
 
@@ -543,7 +543,7 @@ result表現は最も移植事故が多い部分です。
 }
 ```
 
-1.21.5では`smithing_transform`の`base`を必須として扱います。`smithing_trim`では`base`、`template`、`addition`が必須です。古い版に存在した空配列等の特殊な省略表現を移植しません。
+1.21.5では`smithing_transform`の`base`を必須として扱います。`smithing_trim`では`base`、`template`、`addition`が必須です。古いバージョンに存在した空配列等の特殊な省略表現を移植しません。
 
 `smithing_trim`は通常の固定result stackを返すrecipeではなく、base itemへtrimを適用する専用処理です。1.21.5のvanilla例は`pattern`にtrim pattern IDを持ちます。transform/trimが入力stackのcomponentをどう保持・置換するかはserializer固有であり、通常craftingのresultと同一視しません。
 
@@ -576,7 +576,7 @@ result表現は最も移植事故が多い部分です。
 
 ### special crafting
 
-`crafting_special_*`は、通常の`pattern`/`ingredients`だけでは表せないhardcoded処理のserializerです。古い版では多くがtype以外の自由なparameterを受けず、同typeを書けば任意のspecial処理を新規プログラムできるわけではありません。
+`crafting_special_*`は、通常の`pattern`/`ingredients`だけでは表せないhardcoded処理のserializerです。古いバージョンでは多くがtype以外の自由なparameterを受けず、同typeを書けば任意のspecial処理を新規プログラムできるわけではありません。
 
 26.1では一部を設定可能な形へ拡張し、26.2のvanilla dataには次のようなtype・fieldが観測されます。
 
@@ -587,11 +587,11 @@ result表現は最も移植事故が多い部分です。
 | configurable map extending | `map`, `material`, `result` | map拡張用入力と出力 |
 | configurable shield decoration | `banner`, `target`, `result` | banner情報をtargetへ反映 |
 
-special recipeには通常recipeと異なるcomponent必須条件、入力保持、出力patchがあります。type名だけから共通schemaを推測せず、対象版の同じtypeのvanilla JSONを基底にします。
+special recipeには通常recipeと異なるcomponent必須条件、入力保持、出力patchがあります。type名だけから共通schemaを推測せず、対象バージョンの同じtypeのvanilla JSONを基底にします。
 
 ## 正式リリース境界
 
-次の表はloot/recipe familyに影響する主な境界です。記載のないpatch版でも、対象JARでreloadします。
+次の表はloot/recipe familyに影響する主な境界です。記載のないpatchリリースでも、対象JARでreloadします。
 
 | 正式リリース | loot / item modifier | recipe |
 |---|---|---|
@@ -605,7 +605,7 @@ special recipeには通常recipeと異なるcomponent必須条件、入力保持
 | 1.19.3 | loot/item stackは旧NBT形 | 任意`category`追加。craftingとcookingでenumが異なる |
 | 1.19.4 | lootは1.19.3形 | `show_notification`追加 |
 | 1.20 | condition `alternative→any_of`、`all_of`、function `reference`、root `random_sequence` | `smithing_transform`/`smithing_trim`へ移行 |
-| 1.20.2 | function `sequence`、合成predicateのinline形等 | 1.20形。周辺text/state codecも対象版で確認 |
+| 1.20.2 | function `sequence`、合成predicateのinline形等 | 1.20形。周辺text/state codecも対象バージョンで確認 |
 | 1.20.5 | item component化。NBT functionをcustom data/component functionへ移行。loot table entry参照等のcodecも再検証 | resultを`id/count/components`系へ移行 |
 | 1.21 | `loot_table/`、`item_modifier/`へ単数形rename | `recipe/`へ単数形rename |
 | 1.21.2 | item/component/enchantment関連function・predicate IDを再検証 | ingredientをID/`#tag`のinline形へ変更。`crafting_transmute`追加 |
@@ -615,16 +615,16 @@ special recipeには通常recipeと異なるcomponent必須条件、入力保持
 | 26.1 | enchant functionへ追加cost component制御 | resultをIDまたは共通item stackへ統一。smelting系count、`show_notification`を主要serializerへ拡張、stonecutting/smithingの未使用`group`を削除、transmuteとspecial recipe設定を拡張 |
 | 26.2 | 埋め込みentity predicateをnamespaced component-mapへ変更しunknown keyを拒否 | 26.1 result/ingredient形を継承。special type一覧は26.2 JARで確定 |
 
-同じdata pack formatでもschema差分がある版を省略しません。特に1.19.2→1.19.3の`category`はformat 10のまま、1.20.4→1.20.5と1.20.6→1.21は大きな境界です。
+同じdata pack formatでもschema差分があるバージョンを省略しません。特に1.19.2→1.19.3の`category`はformat 10のまま、1.20.4→1.20.5と1.20.6→1.21は大きな境界です。
 
 ## 複数バージョン対応
 
 ### 共通化してよいもの
 
-- 同じ対象版でJAR検証したresource IDとvanilla例
+- 同じ対象バージョンでJAR検証したresource IDとvanilla例
 - 外部APIとして固定した独自loot table/item modifier/recipe ID
 - serializerとfieldが同一と確認できた範囲のJSON
-- function内部を対象版別に分けても維持できる呼出側の抽象名
+- function内部を対象バージョン別に分けても維持できる呼出側の抽象名
 
 ### overlayまたは別packへ分けるもの
 
@@ -653,7 +653,7 @@ weightは候補間の相対値です。条件で残った候補、composite展�
 
 ### 「conditions配列はどれか1つ成立すればよい」
 
-通常は暗黙のANDです。ORは`any_of`等、その版の合成conditionを使います。
+通常は暗黙のANDです。ORは`any_of`等、そのバージョンの合成conditionを使います。
 
 ### 「random_sequenceに固定値を書けば毎回同じ結果」
 
@@ -677,7 +677,7 @@ groupはrecipe book上のまとめです。unlockはadvancement等、材料は�
 
 ### 「result objectは全バージョン・全typeで同じ」
 
-旧`item`、bare ID、`id`付きstack、serializer固有result、26.1統一形が存在します。対象版かつ同じserializerのvanilla例を使います。
+旧`item`、bare ID、`id`付きstack、serializer固有result、26.1統一形が存在します。対象バージョンかつ同じserializerのvanilla例を使います。
 
 ### 「特殊recipe typeを指定すれば独自ロジックを書ける」
 
@@ -685,7 +685,7 @@ special serializerの処理はゲーム側に実装されています。公開fi
 
 ## 検証手順
 
-### 1. 対象版の生成物を得る
+### 1. 対象バージョンの生成物を得る
 
 ```bash
 python3 tools/datapack_harness.py reports 1.21.11 \
@@ -694,7 +694,7 @@ python3 tools/datapack_harness.py reports 1.21.11 \
   --java /path/to/java
 ```
 
-対象版によってvanilla dataのfolderは複数形または単数形です。
+対象バージョンによってvanilla dataのfolderは複数形または単数形です。
 
 ```bash
 find build/minecraft/1.21.11/generated/data/minecraft/loot_table \
@@ -718,12 +718,12 @@ python3 tools/datapack_harness.py validate-pack 1.21.11 path/to/pack
 この段階で確認する項目:
 
 ```text
-[ ] 対象版とfolderの単数・複数が一致する
+[ ] 対象バージョンとfolderの単数・複数が一致する
 [ ] loot root typeと実際の呼出contextが一致する
-[ ] condition/function/entry/recipe type IDが対象版に存在する
+[ ] condition/function/entry/recipe type IDが対象バージョンに存在する
 [ ] type固有の必須field、値型、値域を満たす
 [ ] item/tag/loot table/item modifier参照先が存在する
-[ ] ingredientとresultを対象版の形にした
+[ ] ingredientとresultを対象バージョンの形にした
 [ ] 1.20.5、1.21、1.21.2、1.21.11、26.1、26.2境界を混在させていない
 ```
 
@@ -731,7 +731,7 @@ python3 tools/datapack_harness.py validate-pack 1.21.11 path/to/pack
 
 ### 3. server reload
 
-対象の正式リリースserverで`/reload`し、`logs/latest.log`のcodec error、unknown type、missing reference、context parameter warningを確認します。警告を`generic`へ変えて隠さず、呼出場所と必要parameterを修正します。
+対象の正式リリースのserverで`/reload`し、`logs/latest.log`のcodec error、unknown type、missing reference、context parameter warningを確認します。警告を`generic`へ変えて隠さず、呼出場所と必要parameterを修正します。
 
 ### 4. 実際のcontextで発火
 
@@ -779,13 +779,13 @@ load成功とgameplay結果は別のassertionにします。
 
 この文書のfieldと境界は次の順で確認します。
 
-1. Mojangの正式リリースノートと正式版へ残ったsnapshot technical changes
+1. Mojangの正式リリースノートと正式リリースへ残ったsnapshot technical changes
 2. 公式version manifestから取得した対象release server JAR
 3. JAR data generatorの`generated/data/minecraft/{loot_table,loot_tables,recipe,recipes}`とregistry report
 4. 対象serverのreload logと実際のloot/crafting結果
 5. Minecraft WikiのLoot table、Item modifier、Recipe、各正式リリースページによるcross-check
 
-JARのvanilla JSONにfieldがないことは、そのcodecで使用不能という証明ではありません。反対に、別バージョンのvanilla JSONで観測したfieldは対象版で有効という証明になりません。必須性、任意field、値域、相互排他、context parameterは同じ正式リリースで検査します。
+JARのvanilla JSONにfieldがないことは、そのcodecで使用不能という証明ではありません。反対に、別バージョンのvanilla JSONで観測したfieldは対象バージョンで有効という証明になりません。必須性、任意field、値域、相互排他、context parameterは同じ正式リリースで検査します。
 
 主な一次資料:
 

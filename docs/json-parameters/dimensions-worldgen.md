@@ -1,6 +1,6 @@
 # dimension / worldgen JSON パラメータ
 
-Minecraft Java Edition 1.16 から 26.2 までの `dimension`、`dimension_type`、world generation registry を扱います。カスタム world generation は同じ名前の field でも版によって codec や意味が変わります。対象バージョンを完全一致で決め、Mojang の release note と対象バージョン server JAR が生成した data/report を正本にしてください。
+Minecraft Java Edition 1.16 から 26.2 までの `dimension`、`dimension_type`、world generation registry を扱います。カスタム world generation は同じ名前の field でもバージョンによって codec や意味が変わります。対象バージョンを完全一致で決め、Mojang の release note と対象バージョン server JAR が生成した data/report を正本にしてください。
 
 この文書は設計時の索引です。全 `type` の完全な codec を固定 schema として複製するものではありません。
 
@@ -59,7 +59,7 @@ data/<namespace>/worldgen/configured_feature/<id>.json
 
 `data/example/dimension/bright_caves.json` は `example:bright_caves` というdimension IDになります。`type` に `example:bright_caves_type` と書いた場合、参照先は `data/example/dimension_type/bright_caves_type.json` です。
 
-1.16.0/1.16.1と1.16.2以降、また各境界のfolder一覧は同一ではありません。対象JARの `generated/reports/registries.json` に加え、現在版では `generated/data/minecraft/`、旧版では `generated/reports/worldgen/minecraft/` または `generated/reports/minecraft/` の生成例で存在を確認します。
+1.16.0/1.16.1と1.16.2以降、また各境界のfolder一覧は同一ではありません。対象JARの `generated/reports/registries.json` に加え、現在のバージョンでは `generated/data/minecraft/`、旧バージョンでは `generated/reports/worldgen/minecraft/` または `generated/reports/minecraft/` の生成例で存在を確認します。
 
 ## 独自dimensionと既存Overworldの変更
 
@@ -72,9 +72,9 @@ data/example/dimension/cavern.json
 data/example/dimension_type/cavern.json
 ```
 
-利点は、vanillaや他packとの衝突を避けやすく、既存Overworldを壊さず試せることです。移動は対象版のdimension IDを受け付けるコマンドを使います。
+利点は、vanillaや他packとの衝突を避けやすく、既存Overworldを壊さず試せることです。移動は対象バージョンのdimension IDを受け付けるコマンドを使います。
 
-独自terrainは、対象版のvanilla `dimension_type` と目的が同じgeneratorの定義を基底にし、field単位で変更します。
+独自terrainは、対象バージョンのvanilla `dimension_type` と目的が同じgeneratorの定義を基底にし、field単位で変更します。
 
 ### 既存Overworldの上書き
 
@@ -83,7 +83,7 @@ data/example/dimension_type/cavern.json
 - `dimension_type` の変更は、既存chunkにも適用される環境・gameplay特性へ影響します。
 - generator、biome source、noise settings、featureの変更は、原則として変更後に初めて生成するchunkへ現れます。生成済みchunkを作り直しません。
 - `world_preset` は新規world作成時のdimension構成を決める入口です。既存worldの生成済みchunkを再生成する設定ではありません。
-- `data/minecraft/dimension/overworld.json` は版によってvanilla generated dataに実ファイルが出ない場合があります。ファイルが生成されないことと、custom packでdimension registry entryを定義できないことを同一視しないでください。
+- `data/minecraft/dimension/overworld.json` はバージョンによってvanilla generated dataに実ファイルが出ない場合があります。ファイルが生成されないことと、custom packでdimension registry entryを定義できないことを同一視しないでください。
 - `minecraft` namespace上書きは他packと同じIDを奪い合います。pack順序、world upgrade、削除時の復旧手順まで設計します。
 
 通常は独自dimensionで試作し、既存Overworldを変える必要が明確な場合だけ `minecraft` namespace上書きを検討してください。
@@ -123,7 +123,7 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 | 1.21.11 | `0.0` | `0.1` | `0.25` |
 | 26.2 | `0.0` | `0.1` | `0.25` |
 
-これらはvanillaの採用値であって、custom値の見た目を保証する推奨値ではありません。clientの明るさ設定、skybox、lightmap algorithm、Night Vision、Environment Attributesも結果へ影響します。値域とcodecは対象版で検証し、見た目は対象clientで比較してください。
+これらはvanillaの採用値であって、custom値の見た目を保証する推奨値ではありません。clientの明るさ設定、skybox、lightmap algorithm、Night Vision、Environment Attributesも結果へ影響します。値域とcodecは対象バージョンで検証し、見た目は対象clientで比較してください。
 
 26.1ではlightmap algorithmが変更され、`minecraft:visual/ambient_light_color`、`minecraft:visual/block_light_tint`、`minecraft:visual/night_vision_color`がEnvironment Attributeとして追加されました。1.21.11の `ambient_light` と26.1以降の `visual/ambient_light_color`を同じfieldとして置換しないでください。26.2 vanillaは両方をdimension type内に持ちます。
 
@@ -144,9 +144,9 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 |---|---|---|
 | `minecraft:noise` | `settings`, `biome_source` | 通常のnoise terrain |
 | `minecraft:flat` | `settings` | layerで構成するsuperflat |
-| `minecraft:debug` | 対象版codecを確認 | block state確認用debug world |
+| `minecraft:debug` | 対象バージョンのcodecを確認 | block state確認用debug world |
 
-26.2のnoise generatorでは、`settings` はnoise settings IDまたはinline定義、`biome_source` はbiome source objectです。古い版の参照・inline許可は対象版codecで確認します。
+26.2のnoise generatorでは、`settings` はnoise settings IDまたはinline定義、`biome_source` はbiome source objectです。古いバージョンの参照・inline許可は対象バージョンのcodecで確認します。
 
 ### biome source discriminator
 
@@ -157,9 +157,9 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 | `minecraft:fixed` | `biome` | 全域を1 biomeにする |
 | `minecraft:checkerboard` | biome集合、scale系 | biomeを格子状に配置する |
 | `minecraft:multi_noise` | `preset`またはparameters系 | climate parameterからbiomeを選ぶ |
-| `minecraft:the_end` | 対象版codecを確認 | End固有分布 |
+| `minecraft:the_end` | 対象バージョンのcodecを確認 | End固有分布 |
 
-`multi_noise` のpreset形と直接parameters形は同じobjectの別分岐です。両方を混ぜず、対象版のvanilla例を選びます。biome sourceはbiomeを選びますが、terrainのstone/air形状はnoise settings側が決めます。
+`multi_noise` のpreset形と直接parameters形は同じobjectの別分岐です。両方を混ぜず、対象バージョンのvanilla例を選びます。biome sourceはbiomeを選びますが、terrainのstone/air形状はnoise settings側が決めます。
 
 ### flat generator
 
@@ -173,20 +173,20 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 | `features` | boolean | biome feature生成 |
 | `structure_overrides` | structure setのID/list/tag相当 | 使用するstructure set |
 
-許容されるholder形式と省略時の値は版ごとに確認してください。
+許容されるholder形式と省略時の値はバージョンごとに確認してください。
 
 ## `dimension_type` の主要パラメータ
 
 ### 1.16〜1.18.2
 
-1.16.2以降の初期data pack resourceでは、`ultrawarm`、`natural`、`piglin_safe`、`respawn_anchor_works`、`bed_works`、`has_raids`、`has_skylight`、`has_ceiling`、`coordinate_scale`、`ambient_light`、`logical_height`、`infiniburn`、`effects`とoptional `fixed_time`が中心です。意味の概要は次節の同名fieldを参照できますが、現在版のJSONをこの時代へコピーしてはいけません。1.16.0/1.16.1はこの列挙から完全rootを組み立てず、その版のexportとcodecを直接確認します。
+1.16.2以降の初期data pack resourceでは、`ultrawarm`、`natural`、`piglin_safe`、`respawn_anchor_works`、`bed_works`、`has_raids`、`has_skylight`、`has_ceiling`、`coordinate_scale`、`ambient_light`、`logical_height`、`infiniburn`、`effects`とoptional `fixed_time`が中心です。意味の概要は次節の同名fieldを参照できますが、現在のバージョンのJSONをこの時代へコピーしてはいけません。1.16.0/1.16.1はこの列挙から完全rootを組み立てず、そのバージョンのexportとcodecを直接確認します。
 
 - 1.16.0/1.16.1のexport形式と1.16.2のdata pack registry形式は同一ではありません。
 - 1.18の高さ・terrain全面改訂では、dimension typeの建築範囲とnoise settingsの生成範囲を一緒に見直します。
 - `monster_spawn_light_level` と `monster_spawn_block_light_limit` は1.19で追加されたため、それ以前のdimension typeへ先取りしません。
 - 1.18.2の `infiniburn` 等、tag-only fieldは `#` を含むtag IDを要求します。
 
-初期形式はexperimentalで版間変動が特に大きいため、古い版の完全rootを現行field一覧から逆算せず、その版のJAR data/exportを基底にします。
+初期形式はexperimentalでバージョン間変動が特に大きいため、古いバージョンの完全rootを現行field一覧から逆算せず、そのバージョンのJAR data/exportを基底にします。
 
 ### 1.19〜1.21.5の代表形
 
@@ -213,9 +213,9 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 | `respawn_anchor_works` | boolean | respawn anchor使用挙動。1.21.11でattributeへ移行 |
 | `ultrawarm` | boolean | 水、lava等のNether系挙動を束ねる旧field。1.21.11でattributesへ分解 |
 
-`height`、`min_y` は対象版の倍数・上下限制約を満たす必要があります。さらにnoise generatorを使う場合、`dimension_type` と `noise_settings.noise.{min_y,height}` の範囲を意図的に一致させます。片方だけ変更すると、生成範囲、建築可能範囲、空洞や切断面がずれることがあります。
+`height`、`min_y` は対象バージョンの倍数・上下限制約を満たす必要があります。さらにnoise generatorを使う場合、`dimension_type` と `noise_settings.noise.{min_y,height}` の範囲を意図的に一致させます。片方だけ変更すると、生成範囲、建築可能範囲、空洞や切断面がずれることがあります。
 
-`monster_spawn_light_level` と `monster_spawn_block_light_limit` はmonster spawnの異なるlight条件です。片方を「表示の明るさ」として使わず、両方を同じ対象版のvanilla例から開始してください。
+`monster_spawn_light_level` と `monster_spawn_block_light_limit` はmonster spawnの異なるlight条件です。片方を「表示の明るさ」として使わず、両方を同じ対象バージョンのvanilla例から開始してください。
 
 ### 1.21.6
 
@@ -274,7 +274,7 @@ biomeの `attributes` で視覚を変えることはできますが、地下に�
 
 | field | 型 | 意味 |
 |---|---|---|
-| `period_ticks` | integer、optional | 指定tick数でtrackを反復。省略時は反復しない。許容範囲は対象版codecで確認 |
+| `period_ticks` | integer、optional | 指定tick数でtrackを反復。省略時は反復しない。許容範囲は対象バージョンのcodecで確認 |
 | `tracks` | attribute IDからtrackへのmap | attributeごとの時間変化 |
 | `tracks.*.keyframes` | `{ticks, value}` の昇順list | その時点のmodifier引数またはoverride値 |
 | `tracks.*.modifier` | modifier ID、optional | 省略時は `override` |
@@ -304,7 +304,7 @@ dimension typeへ次が加わりました。
 
 ### 26.2
 
-`infiniburn` はtagだけでなく、block ID、ID list、tagを受け付けるholder set形式へ拡張されました。古い版へID/list形を戻さないでください。
+`infiniburn` はtagだけでなく、block ID、ID list、tagを受け付けるholder set形式へ拡張されました。古いバージョンへID/list形を戻さないでください。
 
 26.2のvanilla `minecraft:overworld` dimension typeで確認できるroot fieldは次です。
 
@@ -329,7 +329,7 @@ timelines
 
 ## worldgen registry family
 
-26.2の主なfamilyとroot/discriminatorは次のとおりです。全subtypeの固有fieldは対象版vanilla dataとrelease noteを参照します。
+26.2の主なfamilyとroot/discriminatorは次のとおりです。全subtypeの固有fieldは対象バージョンのvanilla dataとrelease noteを参照します。
 
 | folder / registry | rootまたはdiscriminator | 役割 |
 |---|---|---|
@@ -346,7 +346,7 @@ timelines
 | `worldgen/template_pool` | `elements[].element.element_type` | jigsaw pieceの重み付きpool |
 | `worldgen/world_preset` | `dimensions` map | 新規worldのdimension構成 |
 | `worldgen/flat_level_generator_preset` | `display`, `settings` | world作成画面用flat preset |
-| `worldgen/multi_noise_biome_source_parameter_list` | `preset`または対象版のparameter root | multi-noise biome配置 |
+| `worldgen/multi_noise_biome_source_parameter_list` | `preset`または対象バージョンのparameter root | multi-noise biome配置 |
 
 ### biome
 
@@ -395,7 +395,7 @@ noise settingsの主要な責務は次です。
 | `noise_router` | density functionをterrain/climate/aquifer等の入力へ接続 |
 | `surface_rule` | density生成後の表面blockを置換 |
 | `spawn_target` | world spawn候補のclimate条件 |
-| `aquifers_enabled`, `ore_veins_enabled`, `legacy_random_source`等 | 対象版に存在する生成switch |
+| `aquifers_enabled`, `ore_veins_enabled`, `legacy_random_source`等 | 対象バージョンに存在する生成switch |
 
 density functionはnumber literal、別registry ID、またはinline objectとして現れます。inline objectの `type` が式のcodecを選びます。`minecraft:add`、`mul`、`noise`、`spline`等は引数構造が異なるため、共通の `{type, value}` 形を仮定しません。
 
@@ -412,11 +412,11 @@ density functionはnumber literal、別registry ID、またはinline objectと�
 - `template_pool` はjigsaw pieceとweightを持ちます。各elementは `element_type` で分岐します。
 - `processor_list` はtemplateを実worldへ置くときの加工列です。各processorは `processor_type`、rule内のpredicateは `predicate_type` で分岐します。
 
-1.18.2正式版は `configured_structure_feature` と `structure_set` を使います。1.19では前者が `structure` へ移行するため、1.18.2と1.19以降のroot/folderを共有できません。
+1.18.2正式リリースは `configured_structure_feature` と `structure_set` を使います。1.19では前者が `structure` へ移行するため、1.18.2と1.19以降のroot/folderを共有できません。
 
 ## バージョン境界
 
-表にないpatch releaseでも意味変更はあり得ます。複数版対応では対象範囲の全正式リリースで検証します。
+表にないpatch releaseでも意味変更はあり得ます。複数バージョン対応では対象範囲の全正式リリースで検証します。
 
 | 境界 | dimension / worldgenの重要点 |
 |---|---|
@@ -455,10 +455,10 @@ python3 tools/datapack_harness.py reports 26.2 \
   --java /path/to/java
 ```
 
-確認対象は版によって異なります。
+確認対象はバージョンによって異なります。
 
 ```text
-# 現在版
+# 現在のバージョン
 generated/reports/registries.json
 generated/data/minecraft/dimension_type/
 generated/data/minecraft/worldgen/
@@ -485,12 +485,12 @@ catalogは索引であり、Minecraftによるcodec検証の代わりではあ�
 
 ### 3. 同じdiscriminatorのvanilla例を選ぶ
 
-たとえばoreを作るなら、別の `configured_feature.type` ではなく、対象版のore featureを基底にします。jigsaw structureなら対象版のjigsaw structureを選びます。
+たとえばoreを作るなら、別の `configured_feature.type` ではなく、対象バージョンのore featureを基底にします。jigsaw structureなら対象バージョンのjigsaw structureを選びます。
 
 1. 目的と同じfolderを選ぶ
 2. 同じ `type` / `processor_type` / `element_type` / `predicate_type` を選ぶ
 3. 必須fieldを残して独自namespaceへコピーする
-4. 参照先のID/tagも対象版に存在することを確認する
+4. 参照先のID/tagも対象バージョンに存在することを確認する
 5. 1 fieldずつ変更してreload/新規生成する
 
 vanillaに同じ分岐例がない場合は、対象正式リリースのMojang release noteにあるfield listを使い、推測した空objectを作りません。
@@ -537,11 +537,11 @@ worldgenはdispatch codecが多重に入れ子になります。次の情報だ�
 
 - `registries.json` にtype IDがある
 - vanilla fileが1例だけある
-- Wikiに現在版のfield一覧がある
-- 別版で同名fieldが動いた
+- Wikiに現在のバージョンのfield一覧がある
+- 別バージョンで同名fieldが動いた
 - `/reload` でその場のdimensionが見えた
 
-対象版の公式JAR generated data、Mojang release note、reload log、新規world/未生成chunkの実動作を組み合わせて判断します。Wikiは意味の確認と例の探索に使い、対象バージョンのcodec判断では公式JARを優先します。
+対象バージョンの公式JAR generated data、Mojang release note、reload log、新規world/未生成chunkの実動作を組み合わせて判断します。Wikiは意味の確認と例の探索に使い、対象バージョンのcodec判断では公式JARを優先します。
 
 ## 出典
 
@@ -560,7 +560,7 @@ worldgenはdispatch codecが多重に入れ子になります。次の情報だ�
 - [Mojang: Java Edition 1.21.11](https://feedback.minecraft.net/hc/en-us/articles/41809981427213-Minecraft-Java-Edition-1-21-11-Mounts-of-Mayhem)
 - [Mojang: Java Edition 26.1](https://feedback.minecraft.net/hc/en-us/articles/44551668333837-Minecraft-Java-Edition-26-1)
 - [Mojang: Java Edition 26.2](https://feedback.minecraft.net/hc/en-us/articles/46690753273997-Minecraft-Java-Edition-26-2)
-- 対象バージョンserver JARの `generated/reports/registries.json` と、版別のgenerated data/worldgen report
+- 対象バージョンのserver JARの `generated/reports/registries.json` と、バージョン別のgenerated data/worldgen report
 
 cross-check:
 

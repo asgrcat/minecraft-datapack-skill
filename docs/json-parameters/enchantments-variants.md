@@ -1,8 +1,8 @@
 # enchantment・variant・painting・jukebox のJSONパラメータ
 
-この文書は Java Edition 1.13〜26.2 のエンチャントとvariant系データについて、定義対象、配置可能になる版、主要field、`type` discriminator、自然スポーンとの関係、破壊的変更を整理します。
+この文書は Java Edition 1.13〜26.2 のエンチャントとvariant系データについて、定義対象、配置可能になるバージョン、主要field、`type` discriminator、自然スポーンとの関係、破壊的変更を整理します。
 
-完全なcodec schemaをMarkdownへ複製する文書ではありません。対象正式リリースのserver JARが生成する `reports/registries.json` と `data/minecraft/` を正本とし、この文書の「必須/任意」はMojang公式field listと、その版のvanilla生成物で確認できた範囲を示します。
+完全なcodec schemaをMarkdownへ複製する文書ではありません。対象正式リリースのserver JARが生成する `reports/registries.json` と `data/minecraft/` を正本とし、この文書の「必須/任意」はMojang公式field listと、そのバージョンのvanilla生成物で確認できた範囲を示します。
 
 ## データモデルと参照関係
 
@@ -102,7 +102,7 @@ data/<namespace>/enchantment/<id>.json
 | `slots` | slot groupのlist | 必須 | effectが有効になる装備位置 |
 | `effects` | effect component IDから値へのmap | 任意、既定は空map | 実際の挙動。`fortune`のようにこのkeyを持たないvanilla定義もある |
 
-`slots`の1.21公式値は`any`、`hand`、`mainhand`、`offhand`、`armor`、`feet`、`legs`、`chest`、`head`、`body`です。後の版でslot systemが増えても、新しい値を古い版へ先取りしません。
+`slots`の1.21公式値は`any`、`hand`、`mainhand`、`offhand`、`armor`、`feet`、`legs`、`chest`、`head`、`body`です。後のバージョンでslot systemが増えても、新しい値を古いバージョンへ先取りしません。
 
 `min_cost`と`max_cost`は次の同じ形です。
 
@@ -117,7 +117,7 @@ level `L`での値は`base + per_level_above_first * (L - 1)`です。
 
 ### rootの構造例
 
-次は「どこへ何を書くか」を示す骨格です。効果のID、attribute、item tagは対象版のregistryに存在するものへ置き換えます。
+次は「どこへ何を書くか」を示す骨格です。効果のID、attribute、item tagは対象バージョンのregistryに存在するものへ置き換えます。
 
 ```json
 {
@@ -185,7 +185,7 @@ level `L`での値は`base + per_level_above_first * (L - 1)`です。
 - `effects`のkey `minecraft:damage`: いつ、何の値へ作用するかを決めるeffect component
 - `effect.type`の`minecraft:add`: その値をどう変えるかを決めるvalue/entity/location effect type
 
-`minecraft:attributes`は例外で、entryがattribute modifierそのものなので、entry内にdynamicな`type`を置きません。`crossbow_charge_time`等もlist wrapperでない特殊形です。同じ形だと推測せず、対象版の同じcomponentを使うvanilla enchantmentを基底にします。
+`minecraft:attributes`は例外で、entryがattribute modifierそのものなので、entry内にdynamicな`type`を置きません。`crossbow_charge_time`等もlist wrapperでない特殊形です。同じ形だと推測せず、対象バージョンの同じcomponentを使うvanilla enchantmentを基底にします。
 
 ### requirements
 
@@ -215,7 +215,7 @@ level `L`での値は`base + per_level_above_first * (L - 1)`です。
 }
 ```
 
-26.1以前の`"type": "minecraft:player"`や`"flags": {...}`を26.2へそのまま残さず、対象版catalogのentity predicate keyへ変換します。
+26.1以前の`"type": "minecraft:player"`や`"flags": {...}`を26.2へそのまま残さず、対象バージョンのcatalogのentity predicate keyへ変換します。
 
 ### level-based value
 
@@ -240,9 +240,9 @@ level `L`での値は`base + per_level_above_first * (L - 1)`です。
 | `minecraft:multiply` | `factor` | 入力値へ乗算 |
 | `minecraft:remove_binomial` | `chance` | 入力個数にbinomial判定を行い成功分を減算 |
 | `minecraft:set` | `value` | 入力値を上書き |
-| `minecraft:exponential` | 対象版codecで確認 | 1.21.11/26.2 registryには存在するが、26.2 vanilla enchantmentに利用例がないためfieldを推測しない |
+| `minecraft:exponential` | 対象バージョンのcodecで確認 | 1.21.11/26.2 registryには存在するが、26.2 vanilla enchantmentに利用例がないためfieldを推測しない |
 
-最後の`minecraft:exponential`はregistry IDの存在を確認できても、generated vanilla JSONだけではfield schemaを確認できない例です。公式JARのcodecまたは対象版server reloadで確定します。
+最後の`minecraft:exponential`はregistry IDの存在を確認できても、generated vanilla JSONだけではfield schemaを確認できない例です。公式JARのcodecまたは対象バージョンのserver reloadで確定します。
 
 ### entity/location effect type
 
@@ -309,7 +309,7 @@ minecraft:trident_sound
 minecraft:trident_spin_attack_strength
 ```
 
-`minecraft:crossbow_charging_sounds`や`minecraft:smash_damage_per_fallen_block`は、公式記事の節見出しと表記が異なる場合があります。JSONへ書くIDは上の正式版registry reportを採用します。
+`minecraft:crossbow_charging_sounds`や`minecraft:smash_damage_per_fallen_block`は、公式記事の節見出しと表記が異なる場合があります。JSONへ書くIDは上の正式リリースのregistry reportを採用します。
 
 1.21の集合はここから`minecraft:post_piercing_attack`を除いた30種です。1.21.11でその1種と、entity/location effectの`apply_exhaustion`、`apply_impulse`、level valueの`exponent`が追加されました。
 
@@ -456,7 +456,7 @@ data/<namespace>/wolf_variant/<id>.json
 }
 ```
 
-生成済み1.20.5 vanilla JSONのfield名は`biomes`です。Mojang 1.20.5 release note本文に単数`biome`と記載される箇所がありますが、対象正式版JARの生成物を優先してください。
+生成済み1.20.5 vanilla JSONのfield名は`biomes`です。Mojang 1.20.5 release note本文に単数`biome`と記載される箇所がありますが、対象正式リリースのJARの生成物を優先してください。
 
 texture IDはresource packの`assets/<namespace>/textures/<path>.png`へ解決されます。このJSONはデータパック側ですが、画像そのものはresource pack側です。
 
@@ -501,7 +501,7 @@ texture IDはresource packの`assets/<namespace>/textures/<path>.png`へ解決�
 | `minecraft:moon_brightness` | `range` | moon brightnessのfloat range |
 | `minecraft:structure` | `structures` | structure ID、list、または`#tag` |
 
-正式版JARのdiscriminatorは単数`minecraft:structure`です。古い記事や要約の`minecraft:structures`をそのまま使わないでください。
+正式リリースのJARのdiscriminatorは単数`minecraft:structure`です。古い記事や要約の`minecraft:structures`をそのまま使わないでください。
 
 ### family別schema
 
@@ -517,7 +517,7 @@ texture IDはresource packの`assets/<namespace>/textures/<path>.png`へ解決�
 | `cow_variant` | 1.21.5 | `model`, `asset_id` | `spawn_conditions` | `model`: `normal`/`cold`/`warm`。26.2 vanillaでは`baby_asset_id`も観測 |
 | `zombie_nautilus_variant` | 1.21.11 | `model`, `asset_id` | `spawn_conditions` | `model`: `normal`/`warm` |
 
-各版のgenerated vanilla entryでは、その行のvisual fieldsとselection fieldが全て存在します。この文書ではそれらを基底例から残すfieldとして扱います。`baby_asset_id`/`baby_assets`は別扱いで、次の注意に従います。
+各バージョンのgenerated vanilla entryでは、その行のvisual fieldsとselection fieldが全て存在します。この文書ではそれらを基底例から残すfieldとして扱います。`baby_asset_id`/`baby_assets`は別扱いで、次の注意に従います。
 
 `baby_asset_id`と`baby_assets`は26.2 vanilla生成物で観測したfieldです。全custom entryでの必須/既定値を観測だけから断定せず、26.1/26.2の同family vanilla entryをそのまま基底にします。
 
@@ -620,7 +620,7 @@ sound variant JSONはsound eventを参照するだけです。実際の音声fil
 
 1.21.5の「visual mob variant 32」はwolf 9、cat 11、frog 3、pig 3、chicken 3、cow 3の合計です。26.2の「visual mob variant 34」はそれらにzombie nautilus 2を加えたものです。これはvanilla entry数であり、custom packで作成できる数の上限ではありません。
 
-## 対象版で完全一覧と同型例を得る
+## 対象バージョンで完全一覧と同型例を得る
 
 1. 対象正式リリースを完全一致で取得する
 2. [`../validation.md`](../validation.md)の手順でdata generatorを実行する
@@ -638,7 +638,7 @@ minecraft:spawn_condition_type
 
 4. `generated/data/minecraft/enchantment/`等から、使いたいcomponent/type/familyと同じvanilla fileを選ぶ
 5. 必須fieldを残したままIDと値だけ変更する
-6. `jq empty`でJSON文法を検査し、対象版serverで`/reload`してcodec errorを確認する
+6. `jq empty`でJSON文法を検査し、対象バージョンのserverで`/reload`してcodec errorを確認する
 7. effectは実際のevent、variantは新規spawn、painting/songはitemからの参照まで発火testする
 
 vanillaに利用例がないregistry IDは、IDの存在だけからfieldを作りません。公式release noteのfield list、公式JARのcodec、reload errorを併用します。
@@ -658,7 +658,7 @@ vanillaに利用例がないregistry IDは、IDの存在だけからfieldを作�
 - [Mojang: Java Edition 1.21.11](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-11)
 - [Mojang: Java Edition 26.1](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-1)
 - [Mojang: Java Edition 26.2](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-2)
-- 対象正式版server JARの`generated/reports/registries.json`と`generated/data/minecraft/`
+- 対象正式リリースのserver JARの`generated/reports/registries.json`と`generated/data/minecraft/`
 
 cross-check:
 

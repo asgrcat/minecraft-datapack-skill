@@ -46,7 +46,7 @@ item stackの概念は複数の場所に現れますが、外側の文法と許�
 | 26.1〜26.1.2 | recipe `result`を短縮IDまたは共通item stackへ統一。default component reportをitemごとのfileへ変更 |
 | 26.2 | `sulfur_cube_content`等を追加。item component predicate typeも増加。26.1の一覧を固定利用しない |
 
-patch版でも新機能を先取りしません。例えば1.20.6は1.20.5形式、1.21.3は1.21.2形式を継承しますが、1.21.5の`tooltip_display`を前倒ししません。
+patchリリースでも新機能を先取りしません。例えば1.20.6は1.20.5形式、1.21.3は1.21.2形式を継承しますが、1.21.5の`tooltip_display`を前倒ししません。
 
 ## 1.13〜1.20.4: 旧 item NBT
 
@@ -165,7 +165,7 @@ componentそのものは通常patch上では任意ですが、item typeが既定
 
 ## 主要componentパラメータ
 
-以下は設計時の索引です。「必須」はそのcomponentを記述する場合の内部fieldを指します。component自体が全item stackで必須という意味ではありません。fieldの追加・rename・短縮形は版ごとに変わるため、表の「境界」より前後へコピーしません。
+以下は設計時の索引です。「必須」はそのcomponentを記述する場合の内部fieldを指します。component自体が全item stackで必須という意味ではありません。fieldの追加・rename・短縮形はバージョンごとに変わるため、表の「境界」より前後へコピーしません。
 
 ### 識別・表示
 
@@ -177,8 +177,8 @@ componentそのものは通常patch上では任意ですが、item typeが既定
 | `minecraft:lore` | text componentのlist | 任意、既定空listの場合あり | tooltipの追加行 | 1.21.5 text/SNBT境界を適用。list全体の上限もcodecで検証 |
 | `minecraft:rarity` | `common`等のenum | item typeに既定あり | 名前色等のrarity | loot確率そのものではない |
 | `minecraft:enchantment_glint_override` | boolean | 任意 | glint表示を強制on/off | enchantmentを付与するcomponentではない |
-| `minecraft:custom_model_data` | 版依存の数値/構造 | 任意 | resource packのmodel選択用data | model本体はresource pack。対象版のresource pack形式も必要 |
-| `minecraft:item_model` | namespaced ID | 1.21.2で全itemに既定 | item model参照 | data packだけではmodelを提供しない。参照pathの方式はresource pack版にも依存 |
+| `minecraft:custom_model_data` | バージョン依存の数値/構造 | 任意 | resource packのmodel選択用data | model本体はresource pack。対象バージョンのresource pack形式も必要 |
+| `minecraft:item_model` | namespaced ID | 1.21.2で全itemに既定 | item model参照 | data packだけではmodelを提供しない。参照pathの方式はresource packバージョンにも依存 |
 | `minecraft:tooltip_style` | namespaced ID | 任意 | tooltip背景・frameのsprite参照 | spriteはresource pack側 |
 | `minecraft:tooltip_display` | `{hide_tooltip?,hidden_components?}` | 1.21.5以降。両fieldに既定あり | tooltip全体またはcomponent由来行を隠す | gameplay componentを消すのではなく表示だけを抑制 |
 
@@ -202,13 +202,13 @@ minecraft:tooltip_display={hidden_components:["minecraft:enchantments"]}
 | `minecraft:max_stack_size` | integer | item typeに既定、1.20.5では`1..99` | stack可能な最大個数 | `max_damage`との排他を確認 |
 | `minecraft:max_damage` | positive integer | damageable itemに既定 | 最大耐久 | `damage`が必要 |
 | `minecraft:damage` | non-negative integer | damageable itemで既定0 | 失った耐久。残耐久ではない | `max_damage - damage`が残耐久 |
-| `minecraft:unbreakable` | `{}`または版依存object | 任意 | 使用による耐久減少を防ぐ | 1.21.5で`show_in_tooltip`を削除 |
+| `minecraft:unbreakable` | `{}`またはバージョン依存object | 任意 | 使用による耐久減少を防ぐ | 1.21.5で`show_in_tooltip`を削除 |
 | `minecraft:repair_cost` | non-negative integer | 既定0の場合あり | 金床の追加cost | repair素材の指定ではない |
 | `minecraft:repairable` | `{items:<item/list/#tag>}` | `items`必須 | 金床で修理できる素材 | 1.21.2追加。itemがdamageableであることも必要 |
 | `minecraft:enchantable` | `{value:<positive integer>}` | `value`必須 | enchant tableで選択される強さ | enchantmentそのものは付与しない |
 | `minecraft:enchantments` | enchantment ID→level map | 既定空mapの場合あり | stackへ実際に作用するenchantment | 1.21.5で`levels` wrapperを常にinline化 |
 | `minecraft:stored_enchantments` | enchantment ID→level map | enchanted bookに既定 | 保存enchantment | stackへ直接効果を与える`enchantments`と違う |
-| `minecraft:attribute_modifiers` | modifierのlist | 既定空listの場合あり | 装備/保持中のattribute補正 | attribute ID、operation、slot形式は版境界あり。1.21.5でlist直書き |
+| `minecraft:attribute_modifiers` | modifierのlist | 既定空listの場合あり | 装備/保持中のattribute補正 | attribute ID、operation、slot形式はバージョン境界あり。1.21.5でlist直書き |
 
 耐久12消費を指定する例です。
 
@@ -226,12 +226,12 @@ give @s minecraft:diamond_pickaxe[minecraft:damage=12]
 | `minecraft:consumable` | `consume_seconds?`, `animation?`, `sound?`, `has_consume_particles?`, `on_consume_effects?` | fieldは既定あり | 使用でitemを消費する動作と副作用 | 1.21.2追加。`food`がなくても消費可能 |
 | `minecraft:use_remainder` | item stack | component値として必須 | 消費後に残すitem | 1.21.2追加。stack内の再帰的componentにも注意 |
 | `minecraft:use_cooldown` | `seconds`, `cooldown_group?` | `seconds`必須 | 使用後cooldown | 同groupのitemへ共有可能 |
-| `minecraft:equippable` | `slot`, `equip_sound?`, model/asset参照、`allowed_entities?`, flags | `slot`必須 | 指定slotへ装備可能にする | 1.21.2追加。field名は後続版で変わり得る。1.21.5で`saddle`や`equip_on_interact` |
+| `minecraft:equippable` | `slot`, `equip_sound?`, model/asset参照、`allowed_entities?`, flags | `slot`必須 | 指定slotへ装備可能にする | 1.21.2追加。field名は後続バージョンで変わり得る。1.21.5で`saddle`や`equip_on_interact` |
 | `minecraft:glider` | `{}` | componentの存在が条件 | 装備中の滑空 | 装備slotを自動指定しないため`equippable`との組合せを検証 |
 | `minecraft:death_protection` | `death_effects?` | field任意 | 手に持つitemが致死damageから保護 | 1.21.2追加。totemの見た目やcustom modelとは別 |
 | `minecraft:weapon` | `item_damage_per_attack?`, `disable_blocking_for_seconds?` | fieldに既定あり | 攻撃時の統計・耐久消費・blocking無効化 | 1.21.5追加 |
 | `minecraft:blocks_attacks` | delay、damage reduction、item damage、sound等 | 多くは任意、内側entryに必須fieldあり | shield型blocking | 1.21.5追加。単なる使用animationではない |
-| `minecraft:tool` | `rules`, `damage_per_block?`, `can_destroy_blocks_in_creative?` | `rules`を中心に版依存 | 採掘速度・適正drop・block破壊時耐久 | Adventure modeの`can_break`とは別 |
+| `minecraft:tool` | `rules`, `damage_per_block?`, `can_destroy_blocks_in_creative?` | `rules`を中心にバージョン依存 | 採掘速度・適正drop・block破壊時耐久 | Adventure modeの`can_break`とは別 |
 
 1.21.2以降、食料dataだけでは使用できません。
 
@@ -239,17 +239,17 @@ give @s minecraft:diamond_pickaxe[minecraft:damage=12]
 give @s minecraft:stick[minecraft:food={nutrition:4,saturation:2.4},minecraft:consumable={}]
 ```
 
-`consumable.on_consume_effects`の1.21.2時点の主な`type`は`apply_effects`、`remove_effects`、`clear_all_effects`、`teleport_randomly`、`play_sound`です。後続版でeffect typeや配置が変わる可能性があるため、最新例を1.21.2へ逆輸入しません。
+`consumable.on_consume_effects`の1.21.2時点の主な`type`は`apply_effects`、`remove_effects`、`clear_all_effects`、`teleport_randomly`、`play_sound`です。後続バージョンでeffect typeや配置が変わる可能性があるため、最新例を1.21.2へ逆輸入しません。
 
 ### 内容物・配置・entity
 
 | component | 値 / 主なfield | 意味 | 注意 |
 |---|---|---|---|
-| `minecraft:bundle_contents` | item stackのlist | bundle内部 | 入れ子stackにも対象版形式を使う |
+| `minecraft:bundle_contents` | item stackのlist | bundle内部 | 入れ子stackにも対象バージョンの形式を使う |
 | `minecraft:container` | `{slot,item}`相当entryのlist | chest/shulker等の内容 | blockへ置いた時のcopy挙動とloot tableによるdrop復元を別に確認 |
 | `minecraft:container_loot` | `loot_table`, `seed?` | 未展開loot table | `container`の確定内容と同じではない |
 | `minecraft:charged_projectiles` | item stackのlist | crossbowの装填内容 | 対応item以外でのgameplay効果を推測しない |
-| `minecraft:can_break` | block predicateまたはlist | Adventure modeで破壊可能 | `tool`の採掘性能とは別。1.21.5形を古い版へ使わない |
+| `minecraft:can_break` | block predicateまたはlist | Adventure modeで破壊可能 | `tool`の採掘性能とは別。1.21.5形を古いバージョンへ使わない |
 | `minecraft:can_place_on` | block predicateまたはlist | Adventure modeで設置可能 | 通常modeの設置許可ではない |
 | `minecraft:block_state` | property名→string値 | block item設置時のstate | 数値/booleanに見えるstate値もstring |
 | `minecraft:block_entity_data` | `id`を含むcompound | 設置先block entityへ適用する未構造化data | operator制限があるblock type、専用componentへ分離済みfieldがある |
@@ -262,7 +262,7 @@ give @s minecraft:stick[minecraft:food={nutrition:4,saturation:2.4},minecraft:co
 
 `potion_contents`、`suspicious_stew_effects`、`writable_book_content`、`written_book_content`、`firework_explosion`、`fireworks`、`map_id`、`map_decorations`、`profile`、`trim`、`banner_patterns`等は、それぞれ独立したcodecを持ちます。
 
-- potion effect instanceのdefault省略やtext component形式は版境界を受ける
+- potion effect instanceのdefault省略やtext component形式はバージョン境界を受ける
 - written bookとwritable bookは同じpage形式とは限らない
 - `profile`は1.21.9で自動resolve/書換のsemanticsが変更された
 - `trim`、variant等のregistry参照は、対象versionの`registries.json`とvanilla dataで存在を確認する
@@ -436,7 +436,7 @@ jq -r \
   build/minecraft/1.21.5/generated/reports/registries.json
 ```
 
-component predicate typeがregistry化されている版では次も確認します。
+component predicate typeがregistry化されているバージョンでは次も確認します。
 
 ```bash
 jq -r \
@@ -486,7 +486,7 @@ reportのpath・形は固定せず、そのversionの生成結果を確認しま
 | 1.21.11 | 104 | `generated/reports/items.json` |
 | 26.2 | 111 | `generated/reports/<namespace>/components/item/<path>.json` |
 
-これは「このページが111種類の全fieldを網羅した」という意味ではありません。対象JARから完全なID集合を取得できたというcoverageです。26.2のitem別default component reportは1537 fileでした。今回の生成物では`data_component_predicate_type`は1.21.5と1.21.11で14、26.2で15 entryを観測しました。1.20.5と1.21ではこの名前のregistry自体がreportにないため、後年のregistry構造を過去版へ当てはめません。
+これは「このページが111種類の全fieldを網羅した」という意味ではありません。対象JARから完全なID集合を取得できたというcoverageです。26.2のitem別default component reportは1537 fileでした。今回の生成物では`data_component_predicate_type`は1.21.5と1.21.11で14、26.2で15 entryを観測しました。1.20.5と1.21ではこの名前のregistry自体がreportにないため、後年のregistry構造を過去バージョンへ当てはめません。
 
 ### 5. codecと動作を検証
 

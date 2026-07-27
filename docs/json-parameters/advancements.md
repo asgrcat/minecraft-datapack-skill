@@ -2,7 +2,7 @@
 
 この文書は Minecraft Java Edition 1.13〜26.2 の advancement definitionについて、root field、表示、criterion、trigger condition、requirements、reward、telemetry、predicateとの文脈差、バージョン境界を整理します。playerごとの状態管理、反復event、`/advancement`の運用例は [`../advancements.md`](../advancements.md) を参照してください。
 
-ここに示す表は設計時の索引です。全triggerの全condition codecを1つの固定schemaとして複製するものではありません。利用可能なtrigger IDは対象正式リリースのserver JARが生成する`registries.json`、各triggerの実際の形は同版のvanilla advancementとMojang release note、受理可否は同版serverのreload結果を正本とします。
+ここに示す表は設計時の索引です。全triggerの全condition codecを1つの固定schemaとして複製するものではありません。利用可能なtrigger IDは対象正式リリースのserver JARが生成する`registries.json`、各triggerの実際の形は同じバージョンのvanilla advancementとMojang release note、受理可否は同じバージョンのserverのreload結果を正本とします。
 
 ## 配置とresource ID
 
@@ -14,7 +14,7 @@ data/<namespace>/advancements/<path>.json
 data/<namespace>/advancement/<path>.json
 ```
 
-たとえば、どちらの版でも次のfileはadvancement ID `example:story/cave_sight`を表します。
+たとえば、どちらのバージョンでも次のfileはadvancement ID `example:story/cave_sight`を表します。
 
 ```text
 data/example/advancements/story/cave_sight.json  # 1.20.6以前
@@ -36,7 +36,7 @@ advancement definitionのroot fieldは次の役割に分かれます。
 | `rewards` | reward object | 任意 | 完了へ遷移した時のexperience、loot、recipe、function |
 | `sends_telemetry_event` | boolean | 1.20以降で任意、既定`false` | clientの任意telemetry event対象にする印 |
 
-1.20.5〜26.2の公式JAR generated dataでは、この6種類以外のadvancement root fieldは観測されません。ただし、root fieldが同じでも`display.icon`、trigger condition、item/entity/location predicate等の内側は版ごとに変わります。
+1.20.5〜26.2の公式JAR generated dataでは、この6種類以外のadvancement root fieldは観測されません。ただし、root fieldが同じでも`display.icon`、trigger condition、item/entity/location predicate等の内側はバージョンごとに変わります。
 
 ### 1.21.5〜26.1の骨格例
 
@@ -102,18 +102,18 @@ advancement definitionのroot fieldは次の役割に分かれます。
 
 | field | 型 | 必須性・既定 | 意味 |
 |---|---|---|---|
-| `icon` | 版依存のitem stack | 必須 | treeとtoastに表示するitem |
+| `icon` | バージョン依存のitem stack | 必須 | treeとtoastに表示するitem |
 | `title` | text component | 必須 | 表示名 |
 | `description` | text component | 必須 | 説明文 |
 | `frame` | `task` / `goal` / `challenge` | 任意、既定`task` | frame、toast見出し、challenge音等の表示分類 |
-| `background` | 版依存のtexture/sprite ID | 任意 | root tabの背景 |
+| `background` | バージョン依存のtexture/sprite ID | 任意 | root tabの背景 |
 | `show_toast` | boolean | 任意、既定`true` | 完了toastを表示するか |
 | `announce_to_chat` | boolean | 任意、既定`true` | `announceAdvancements`が有効な時にchatへ告知するか |
 | `hidden` | boolean | 任意、既定`false` | 未完了時にtree上で隠すか |
 
 `frame`はcriterionの難しさを自動評価せず、requirementsやrewardの実行条件も変えません。`hidden`もevent listenerを止めるfieldではありません。
 
-### iconの版境界
+### iconのバージョン境界
 
 1.20.4以前の代表形:
 
@@ -140,9 +140,9 @@ advancement definitionのroot fieldは次の役割に分かれます。
 }
 ```
 
-1.20.5で旧`item`と`nbt`をstructured item stackの`id`、`count`、`components`へ移行しました。`count`は省略時1で、26.2 vanilla iconでは省略形も観測されます。item componentの値構造は [`items.md`](items.md) の対象版境界に従います。
+1.20.5で旧`item`と`nbt`をstructured item stackの`id`、`count`、`components`へ移行しました。`count`は省略時1で、26.2 vanilla iconでは省略形も観測されます。item componentの値構造は [`items.md`](items.md) の対象バージョン境界に従います。
 
-### backgroundの版境界
+### backgroundのバージョン境界
 
 1.21.4以前:
 
@@ -267,7 +267,7 @@ minecraft:villager_trade
 minecraft:voluntary_exile
 ```
 
-これはIDの完全一覧であり、58種の`conditions`が同じshapeという意味ではありません。1.18.2の`registries.json`には同名registryが公開されていないため、現在版の一覧を古い版へ適用せず、その版のvanilla dataとrelease noteからtriggerを確定します。
+これはIDの完全一覧であり、58種の`conditions`が同じshapeという意味ではありません。1.18.2の`registries.json`には同名registryが公開されていないため、現在のバージョンの一覧を古いバージョンへ適用せず、そのバージョンのvanilla dataとrelease noteからtriggerを確定します。
 
 ### 用途別に見るcondition
 
@@ -281,7 +281,7 @@ minecraft:voluntary_exile
 | crafting・loot | `recipe_crafted`, `crafter_recipe_crafted`, `player_generates_container_loot` | recipe ID、ingredients、loot table ID |
 | manual・周期 | `impossible`, `tick` | 自然発火なし、player条件 |
 
-同じ名前の`item`、`location`、`entity` fieldでも、triggerごとに型とevent上の対象が異なります。たとえば`villager_trade.conditions.item`は取引item、`consume_item.conditions.item`は消費itemです。名前だけで対象を推測せず、同じtriggerを使う対象版vanilla advancementを基底にします。
+同じ名前の`item`、`location`、`entity` fieldでも、triggerごとに型とevent上の対象が異なります。たとえば`villager_trade.conditions.item`は取引item、`consume_item.conditions.item`は消費itemです。名前だけで対象を推測せず、同じtriggerを使う対象バージョンのvanilla advancementを基底にします。
 
 ## trigger conditionとpredicate/loot conditionの文脈差
 
@@ -302,7 +302,7 @@ criterion
 |---|---|---|
 | advancement `criteria.*.conditions` | trigger固有object | そのeventが提供するplayer、item、entity、位置等 |
 | `conditions.player`等の拡張entity check | inline loot conditionのlist | そのfieldが対象にするentityを`this`として構築したcontext |
-| standalone `predicate/<id>.json` | loot condition objectまたは版依存の合成形 | 呼出元が渡すorigin、`this_entity`等 |
+| standalone `predicate/<id>.json` | loot condition objectまたはバージョン依存の合成形 | 呼出元が渡すorigin、`this_entity`等 |
 | loot tableのcondition | loot contextごとのcondition | killer、tool、block entity、damage source等、loot type依存 |
 
 1.16で、`minecraft:impossible`を除くtriggerに`player` checkが加わり、entity checkがinline loot condition listを受け取れるようになりました。listの各conditionは全て満たす必要があります。
@@ -343,7 +343,7 @@ criterion
 
 `this`の意味は常に同じentityではありません。`player` checkではeventを受け取るplayer、victim用fieldではそのvictimというように、外側fieldが組み立てるloot contextに依存します。また、`tool`や`damage_source`を必要とするloot conditionを、それらを提供しないtrigger fieldへコピーするとload時または評価時に失敗します。
 
-standalone predicate IDはtrigger condition objectへ文字列で直接代入しません。対象版に`minecraft:reference` loot conditionがあり、そのfieldのloot contextで利用できる場合は、inline conditionとして明示的に参照します。
+standalone predicate IDはtrigger condition objectへ文字列で直接代入しません。対象バージョンに`minecraft:reference` loot conditionがあり、そのfieldのloot contextで利用できる場合は、inline conditionとして明示的に参照します。
 
 ```json
 {
@@ -450,26 +450,26 @@ vanilla advancementは1.20以降のgenerated dataで`true`を多く使用しま�
 
 | 正式リリース | advancement JSONの重要点 |
 |---|---|
-| 1.13 | custom advancementをdata packへ配置する基準版。数値IDや旧achievement systemと混在させない |
+| 1.13 | custom advancementをdata packへ配置する基準バージョン。数値IDや旧achievement systemと混在させない |
 | 1.14〜1.15.2 | triggerとpredicate fieldが追加・変更される。1.15でstandalone predicate resourceを追加したが、trigger condition rootと同一型ではない |
-| 1.16〜1.16.5 | 全trigger（`impossible`を除く）へ`player` checkを追加。entity checkがloot condition listを受け付ける。旧entity object形は当時のdeprecated互換であり、後続版の根拠にしない |
-| 1.17〜1.17.1 | item predicateの`item`を`items`へ変更。trigger固有item fieldも同版predicateへ更新 |
+| 1.16〜1.16.5 | 全trigger（`impossible`を除く）へ`player` checkを追加。entity checkがloot condition listを受け付ける。旧entity object形は当時のdeprecated互換であり、後続バージョンの根拠にしない |
+| 1.17〜1.17.1 | item predicateの`item`を`items`へ変更。trigger固有item fieldも同じバージョンのpredicateへ更新 |
 | 1.18〜1.18.2 | `nether_travel`の`entered`を`start_position`へrenameし`exited`を削除。`fall_from_height`、`ride_entity_in_lava`等を追加 |
 | 1.19〜1.19.2 | 一部triggerの重複`location`を削除し`player.location`へ統合。entity predicateを`type_specific`へ再編。sculk/allay/item pickup系triggerを追加 |
 | 1.19.3〜1.19.4 | 同じpack format 10内でもentity `type_specific` optionやInteraction entity対応が増えるため、1.19.2のcondition一覧を固定しない |
 | 1.20〜1.20.1 | `sends_telemetry_event`追加。3種のblock event triggerを`location` loot condition listへ統合。`recipe_crafted`追加。`alternative`を`any_of`へrenameし`all_of`追加 |
-| 1.20.2〜1.20.4 | effect NBT、block/fluid state matcher、text component等の埋め込み型が変わる。trigger rootが同じでもnested predicateを対象版へ更新 |
-| 1.20.5〜1.20.6 | `display.icon`とitem predicateをstructured componentsへ全面移行。`any_block_use`、`default_block_use`、crafter系trigger等を含む56 triggerを正式版reportで確認 |
-| 1.21〜1.21.1 | data folderを`advancements/`から`advancement/`へ単数化。内側のpredicate/tag folderも対象版の単数形に合わせる |
+| 1.20.2〜1.20.4 | effect NBT、block/fluid state matcher、text component等の埋め込み型が変わる。trigger rootが同じでもnested predicateを対象バージョンへ更新 |
+| 1.20.5〜1.20.6 | `display.icon`とitem predicateをstructured componentsへ全面移行。`any_block_use`、`default_block_use`、crafter系trigger等を含む56 triggerを正式リリースのreportで確認 |
+| 1.21〜1.21.1 | data folderを`advancements/`から`advancement/`へ単数化。内側のpredicate/tag folderも対象バージョンの単数形に合わせる |
 | 1.21.2〜1.21.4 | trigger ID `killed_by_crossbow`を`killed_by_arrow`へ置換。item component、ingredient、entity/block data等の変更がnested item predicateやiconへ波及 |
 | 1.21.5 | `background`をsprite IDへ変更。entity/item/block predicateをcomponent対応へ更新 |
 | 1.21.6 | data pack JSONをstrict parse。`player_sheared_equipment` triggerを追加 |
 | 1.21.7〜1.21.10 | 1.21.6のstrict JSONとtrigger集合を継承 |
-| 1.21.11 | `spear_mobs`を追加し58 trigger。既存triggerのnested item/entity schemaも同版を使う |
+| 1.21.11 | `spear_mobs`を追加し58 trigger。既存triggerのnested item/entity schemaも同じバージョンを使う |
 | 26.1〜26.1.2 | advancement rootとtrigger ID集合は1.21.11を継承。recipe、item、loot側の変更をreward参照とpredicateへ反映 |
 | 26.2 | trigger ID集合は58種を継承。entity predicateをcomponent-mapへ変更しunknown keyを拒否するため、`conditions.player`やtrigger固有entity checkも再生成 |
 
-同じdata pack formatを共有するpatch版でもtrigger optionや参照先IDが増える場合があります。`pack_format`だけでadvancement compatibilityを決めず、正式リリースIDを完全一致させます。
+同じdata pack formatを共有するpatchリリースでもtrigger optionや参照先IDが増える場合があります。`pack_format`だけでadvancement compatibilityを決めず、正式リリースIDを完全一致させます。
 
 ## 互換性上の確認点
 
@@ -510,7 +510,7 @@ progress:   world内のplayerごとのcriterion完了時刻・状態
 - telemetry fieldはpack内event loggerではない
 - JSON parse成功だけではeventが実際に発火することを保証しない
 
-## 対象版での検証
+## 対象バージョンでの検証
 
 ### 1. vanilla dataとtrigger IDを取得
 
@@ -521,7 +521,7 @@ python3 tools/datapack_harness.py reports 26.2 \
   --java /path/to/java
 ```
 
-1.20.5以降の正式版ではtrigger IDを次のように取得できます。
+1.20.5以降の正式リリースではtrigger IDを次のように取得できます。
 
 ```bash
 jq -r \
@@ -541,7 +541,7 @@ build/minecraft/26.2/generated/data/minecraft/advancement/
 build/minecraft/1.20.5/generated/data/minecraft/advancements/
 ```
 
-古い版で`minecraft:trigger_type` registryがreportにない場合、それを「triggerが存在しない」と解釈しません。vanilla advancementとMojang release noteを列挙元にします。
+古いバージョンで`minecraft:trigger_type` registryがreportにない場合、それを「triggerが存在しない」と解釈しません。vanilla advancementとMojang release noteを列挙元にします。
 
 ### 2. 静的検査
 
@@ -556,19 +556,19 @@ python3 tools/datapack_harness.py validate-pack \
 静的検査で確認する項目:
 
 ```text
-[ ] 対象版の複数形/単数形folder
+[ ] 対象バージョンの複数形/単数形folder
 [ ] parent、function、recipe、loot table、predicate参照先
 [ ] criteria名とrequirements名の一致
 [ ] trigger IDの存在
 [ ] display.iconのitem stack形式
 [ ] backgroundのtexture/sprite境界
-[ ] nested item/entity/location/damage predicateの対象版形式
-[ ] sends_telemetry_eventの導入版
+[ ] nested item/entity/location/damage predicateの対象バージョンの形式
+[ ] sends_telemetry_eventの導入バージョン
 ```
 
 ### 3. serverでの実動作
 
-1. 対象正式版serverで起動または`/reload`し、advancement parse errorと参照errorを確認する
+1. 対象正式リリースのserverで起動または`/reload`し、advancement parse errorと参照errorを確認する
 2. 未達成playerで条件外eventを発生させ、criterionが進まないことを確認する
 3. 条件内eventを発生させ、意図したcriterionだけが進むことを確認する
 4. requirementsの各AND/OR経路を別playerまたはrevoke後に試す
@@ -594,7 +594,7 @@ python3 tools/datapack_harness.py validate-pack \
 - [Mojang: Java Edition 1.21.5](https://feedback.minecraft.net/hc/en-us/articles/35298208390797-Minecraft-Java-Edition-1-21-5-Spring-to-Life) — background sprite、predicate変更
 - [Mojang: Java Edition 1.21.11](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-11) — trigger追加
 - [Mojang: Java Edition 26.2](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-2) — entity predicate component-map
-- 対象正式リリースserver JARの`generated/reports/registries.json`と`generated/data/minecraft/advancement*/`
+- 対象正式リリースのserver JARの`generated/reports/registries.json`と`generated/data/minecraft/advancement*/`
 
 cross-check:
 

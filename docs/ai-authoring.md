@@ -57,9 +57,9 @@ resolve(target_version):
   reject commands, IDs and JSON resources absent from capabilities
 ```
 
-`inherits` はmetadata、AI規則、JSONパラメータ差分の履歴追跡に使います。対象バージョンへ適用するAI規則は対象版自身の `active_ai_rules` だけです。祖先規則は `rule_history` として出力しますが、後続版で解除された禁止事項を累積適用しません。
+`inherits` はmetadata、AI規則、JSONパラメータ差分の履歴追跡に使います。対象バージョンへ適用するAI規則は対象バージョン自体の `active_ai_rules` だけです。祖先規則は `rule_history` として出力しますが、後続バージョンで解除された禁止事項を累積適用しません。
 
-`JSONパラメータ差分`は全プロファイルで存在と9 familyを検査し、`json_parameter_history`として1.13から対象版まで順に出力します。これは追加・変更・削除・移行理由を解決する履歴です。その他の任意見出しから機能集合を合成せず、最終的に使用可能なcommand、registry、vanilla JSONは対象バージョンのJARから直接得ます。
+`JSONパラメータ差分`は全プロファイルで存在と9 familyを検査し、`json_parameter_history`として1.13から対象バージョンまで順に出力します。これは追加・変更・削除・移行理由を解決する履歴です。その他の任意見出しから機能集合を合成せず、最終的に使用可能なcommand、registry、vanilla JSONは対象バージョンのJARから直接得ます。
 
 機械処理では [`versions/profile.schema.json`](versions/profile.schema.json) の基本クラスと `compatibility_tags` を解釈します。本文の「コマンド」「JSON」「変更」などの見出し名は入力スキーマではありません。
 

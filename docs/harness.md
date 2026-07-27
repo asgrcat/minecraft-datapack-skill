@@ -55,13 +55,13 @@ JSON出力:
 - 1.13から対象バージョンまでのinheritance chain
 - 対象バージョンだけの `active_ai_rules`
 - 過去バージョンの参考履歴 `rule_history`（対象バージョンへ適用しない）
-- 1.13から対象版までのfamily別追加・変更・削除・互換性 `json_parameter_history`（各版の`changes`は9 familyのobject）
+- 1.13から対象バージョンまでのfamily別追加・変更・削除・互換性 `json_parameter_history`（各バージョンの`changes`は9 familyのobject）
 - command/registry/vanilla dataの正本path
 - server検査に必要なJava major
 
 versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock Edition、近似semverを受け付けません。
 
-`rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。`json_parameter_history`は版別プロファイルの差分を時系列で提示しますが、対象バージョンで使用可能なcommand、registry、vanilla resourceは自然言語だけで合成せず、対象バージョンのreport/dataで決定します。
+`rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。`json_parameter_history`はバージョン別プロファイルの差分を時系列で提示しますが、対象バージョンで使用可能なcommand、registry、vanilla resourceは自然言語だけで合成せず、対象バージョンのreport/dataで決定します。
 
 ## 3. 公式server JAR
 
@@ -121,7 +121,7 @@ python3 tools/datapack_harness.py json-catalog 1.21.11 \
   --output build/1.21.11/json-catalog.json
 ```
 
-`registry_ids`と`worldgen_dispatchers`は、`registries.json`に公開されたentry IDを列挙します。`registry_sources`は、各`registry_ids` groupの参照元registryを`present`（reportに公開）または`unknown`（このreportでは未公開）で示します。`observed_shapes`は`generated/data/minecraft/`、旧版の`generated/reports/{worldgen/,}minecraft/`、item reportにあるvanilla例を走査し、JSON pathごとに実際に現れた型を出力します。先行する`reports` commandが記録したversionとserver JAR SHA-1も出力へ含めます。
+`registry_ids`と`worldgen_dispatchers`は、`registries.json`に公開されたentry IDを列挙します。`registry_sources`は、各`registry_ids` groupの参照元registryを`present`（reportに公開）または`unknown`（このreportでは未公開）で示します。`observed_shapes`は`generated/data/minecraft/`、旧バージョンの`generated/reports/{worldgen/,}minecraft/`、item reportにあるvanilla例を走査し、JSON pathごとに実際に現れた型を出力します。先行する`reports` commandが記録したversionとserver JAR SHA-1も出力へ含めます。
 
 用途:
 
@@ -130,7 +130,7 @@ python3 tools/datapack_harness.py json-catalog 1.21.11 \
 - 境界バージョン間でregistry IDと観測fieldを機械比較
 - 手書き例を作る前に同型のvanilla fileを特定
 
-`registry_ids`が空でも、`registry_sources`が`unknown`なら非対応とは確定できません。`source.datapack`が`null`の版では、空の`data_driven_registries`も「追加可能なregistryなし」ではなくreport未公開です。`observed_shapes`はcodec schemaではありません。vanillaが使用しない任意field、条件付き必須field、値域、排他的な組合せは出力から確定できないため、[`json-parameters/README.md`](json-parameters/README.md)のfamily別説明とserver検査を併用します。
+`registry_ids`が空でも、`registry_sources`が`unknown`なら非対応とは確定できません。`source.datapack`が`null`のバージョンでは、空の`data_driven_registries`も「追加可能なregistryなし」ではなくreport未公開です。`observed_shapes`はcodec schemaではありません。vanillaが使用しない任意field、条件付き必須field、値域、排他的な組合せは出力から確定できないため、[`json-parameters/README.md`](json-parameters/README.md)のfamily別説明とserver検査を併用します。
 
 ## 6. pack静的検査
 

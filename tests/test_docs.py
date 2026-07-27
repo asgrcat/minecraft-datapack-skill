@@ -172,6 +172,14 @@ class DocumentationTests(unittest.TestCase):
                 )
         self.assertEqual([], failures)
 
+    def test_version_terminology_is_consistent(self) -> None:
+        failures = [
+            str(markdown.relative_to(ROOT))
+            for markdown in public_markdown_files()
+            if "版" in markdown.read_text(encoding="utf-8")
+        ]
+        self.assertEqual([], failures)
+
     def test_main_json_parameter_table_covers_every_release_profile(self) -> None:
         index = (
             DOCS / "json-parameters" / "README.md"
