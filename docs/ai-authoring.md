@@ -36,15 +36,20 @@ resolve(target_version):
   chain = resolve_inheritance(profile)
   active_rules = target profile's "AI 生成規則" bullets
   rule_history = ancestor rules for reference only
+  json_parameter_history = chain's "JSONパラメータ差分" sections in order
 
   exact_release = official_manifest.release[target_version]
   reports = generate_reports(exact_release.server_jar)
   capabilities.commands = reports/commands.json
   capabilities.registries = reports/registries.json
+  capabilities.datapack_registries = reports/datapack.json if present
   capabilities.vanilla_data = generated/data/minecraft
+  capabilities.json_catalog = json-catalog(reports)
 
   state = common rules from commands.md and json-formats.md
   apply target profile's metadata and active_rules
+  if requirements mention a family covered by json-parameters/README.md:
+    read json_parameter_history and the family guide from json-parameters/README.md
   if requirements mention gameplay content:
     resolve observations and controls from content-hooks.md
 
@@ -52,7 +57,9 @@ resolve(target_version):
   reject commands, IDs and JSON resources absent from capabilities
 ```
 
-`inherits` はmetadataとAI規則の履歴を追跡するために使います。対象バージョンへ適用するのは対象バージョン自身の `active_ai_rules` だけです。祖先バージョンの規則は `rule_history` として出力しますが、後続バージョンで解除された禁止事項を累積適用しません。Markdown本文の任意見出しから追加・変更・削除を推測して機能集合を合成せず、command、registry、vanilla JSONの有効集合は対象バージョンのJARから直接得ます。
+`inherits` はmetadata、AI規則、JSONパラメータ差分の履歴追跡に使います。対象バージョンへ適用するAI規則は対象バージョン自体の `active_ai_rules` だけです。祖先規則は `rule_history` として出力しますが、後続バージョンで解除された禁止事項を累積適用しません。
+
+`JSONパラメータ差分`は全プロファイルで存在と9 familyを検査し、`json_parameter_history`として1.13から対象バージョンまで順に出力します。これは追加・変更・削除・移行理由を解決する履歴です。その他の任意見出しから機能集合を合成せず、最終的に使用可能なcommand、registry、vanilla JSONは対象バージョンのJARから直接得ます。
 
 機械処理では [`versions/profile.schema.json`](versions/profile.schema.json) の基本クラスと `compatibility_tags` を解釈します。本文の「コマンド」「JSON」「変更」などの見出し名は入力スキーマではありません。
 

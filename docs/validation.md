@@ -49,13 +49,25 @@ Java の必要バージョンもゲームバージョンに合わせます。代
 | 出力 | 使い方 |
 |---|---|
 | `generated/reports/commands.json` | literal、argument parser、分岐、実行可能な全 command tree |
-| `generated/reports/registries.json` | 対象バージョンに存在する registry と entry ID |
+| `generated/reports/registries.json` | data generatorがこのreportに公開するregistryとentry ID |
+| `generated/reports/datapack.json` | 対応バージョンで生成される場合、data packから追加できるregistryと配置 |
 | block/item 等の report | block state、item、protocol/data の照合 |
-| `generated/data/minecraft/` | 対象バージョン codec が実際に読む vanilla tag/recipe/advancement/worldgen の例 |
+| `generated/data/minecraft/` | 対象バージョンのcodecが実際に読むvanilla tag/recipe/advancement/worldgenの例。旧バージョンのworldgen例はreport側へ出る場合がある |
 
 出力名は古いバージョンで異なる場合があります。まず引数なしで data generator の help を表示し、そのバージョンの `--reports`/`--server` を確認します。
 
-vanilla entry が空、またはcode側にだけ存在する型は `generated/data/minecraft/` にfolderが出ない場合があります。生成folderの不在だけで custom entry不可と判定せず、`registries.json`、release note、対象バージョンでのreloadを併用します。
+vanilla entryが空、code側にだけ存在する型、または旧data generatorのworldgen出力では、`generated/data/minecraft/`にfolderが出ない場合があります。1.18.2では`generated/reports/worldgen/minecraft/`、1.19等では`generated/reports/minecraft/`も確認します。生成folderの不在だけでcustom entry不可と判定せず、`registries.json`、release note、対象バージョンでのreloadを併用します。
+
+生成後に`json-catalog`を実行すると、item component、enchantment effect、variant、worldgen、predicate、advancement trigger、loot、recipeのtype IDと、vanilla JSONで観測されたfield pathを1つのJSONへ集約できます。
+
+```bash
+python3 tools/datapack_harness.py json-catalog "$TARGET_VERSION" \
+  --reports "build/minecraft/$TARGET_VERSION/generated" \
+  --output "build/minecraft/$TARGET_VERSION/json-catalog.json"
+```
+
+registry ID一覧とvanilla観測fieldの保証範囲は[`json-parameters/README.md`](json-parameters/README.md)を参照してください。カタログの`registry_sources`が`unknown`、または`source.datapack`が`null`の場合は、空配列を機能非対応の証拠にしません。
+catalog作成時は`reports` commandが生成した`.datapack-harness-report.json`を照合し、指定versionとreportの正式リリースが異なる場合は失敗します。
 
 ### command graph の読み方
 
@@ -135,7 +147,7 @@ vanilla に例がない data-driven registry は、対象バージョンの公�
 
 `commands.json` とJSON parseは構文を検査しますが、実行コンテキスト、永続状態、vanilla AI、複数対象時の分岐までは保証しません。
 
-中上級packでは次もtestします。
+永続状態や複合要件を持つpackでは次もtestします。
 
 ```text
 [ ] executor、position、dimensionがentry pointごとに正しい

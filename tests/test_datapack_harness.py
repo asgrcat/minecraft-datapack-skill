@@ -62,6 +62,17 @@ class ProfileTests(unittest.TestCase):
         self.assertNotIn("1.14 以降の `/data modify`", active)
         self.assertIn("1.14 以降の `/data modify`", history)
         self.assertNotIn("ai_rules", payload)
+        parameter_history = payload["json_parameter_history"]
+        self.assertEqual("1.13", parameter_history[0]["version"])
+        self.assertEqual("1.20.5", parameter_history[-1]["version"])
+        self.assertEqual(
+            len(payload["inheritance_chain"]),
+            len(parameter_history),
+        )
+        self.assertIn(
+            "dimension/worldgen",
+            parameter_history[-1]["changes"],
+        )
 
     def test_known_boundaries_are_documented(self) -> None:
         commands = (ROOT / "docs" / "commands.md").read_text(encoding="utf-8")
@@ -69,6 +80,48 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("1.13〜1.20.6 では `data/<namespace>/functions/", commands)
         self.assertIn("`@n` | 最寄り entity。1.21 以降", commands)
         self.assertIn("| trial_spawner | 1.21.2 |", formats)
+
+    def test_json_parameter_changes_require_labeled_family_bullets(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "profile.md"
+            path.write_text(
+                "\n".join(
+                    (
+                        "# Test",
+                        "",
+                        "## JSONパラメータ差分",
+                        "",
+                        "- item: item change",
+                        "- **dimension/worldgen**: worldgen change",
+                        "- enchantment: enchantment change",
+                        "- **variant**: variant change",
+                        "- predicate: predicate change",
+                        "- advancement: advancement change",
+                        "- loot_table: loot change",
+                        "- recipe: recipe change",
+                        "- item_modifier: modifier change",
+                        "",
+                        "## AI 生成規則",
+                        "",
+                        "- rule",
+                    )
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                {
+                    "item": "item change",
+                    "dimension/worldgen": "worldgen change",
+                    "enchantment": "enchantment change",
+                    "variant": "variant change",
+                    "predicate": "predicate change",
+                    "advancement": "advancement change",
+                    "loot_table": "loot change",
+                    "recipe": "recipe change",
+                    "item_modifier": "modifier change",
+                },
+                dict(HARNESS.extract_json_parameter_changes(path)),
+            )
 
 
 class PackValidationTests(unittest.TestCase):
@@ -546,6 +599,418 @@ class ReportTests(unittest.TestCase):
             output_index = captured["command"].index("--output") + 1
             self.assertEqual(str(output.resolve()), captured["command"][output_index])
             self.assertEqual(str(jar.resolve()), captured["command"][3])
+            provenance = json.loads(
+                (output / HARNESS.REPORT_PROVENANCE_FILE).read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual("26.2", provenance["version"])
+            self.assertEqual(HARNESS.sha1_file(jar), provenance["server_sha1"])
+
+
+class JsonCatalogTests(unittest.TestCase):
+    def test_catalog_separates_registry_ids_from_observed_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            generated = Path(temporary) / "generated"
+            reports = generated / "reports"
+            data = generated / "data" / "minecraft"
+            reports.mkdir(parents=True)
+            (data / "dimension").mkdir(parents=True)
+            (data / "dimension_type").mkdir(parents=True)
+            (data / "enchantment").mkdir()
+            (data / "cat_variant").mkdir()
+            (data / "worldgen" / "configured_feature").mkdir(parents=True)
+            (generated / HARNESS.REPORT_PROVENANCE_FILE).write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "version": "test",
+                        "server_sha1": "fixture",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "registries.json").write_text(
+                json.dumps(
+                    {
+                        "minecraft:data_component_type": {
+                            "entries": {
+                                "minecraft:custom_name": {},
+                                "minecraft:max_stack_size": {},
+                            }
+                        },
+                        "minecraft:enchantment_value_effect_type": {
+                            "entries": {"minecraft:add": {}}
+                        },
+                        "minecraft:loot_condition_type": {
+                            "entries": {"minecraft:random_chance": {}}
+                        },
+                        "minecraft:loot_function_type": {
+                            "entries": {"minecraft:set_count": {}}
+                        },
+                        "minecraft:recipe_serializer": {
+                            "entries": {"minecraft:crafting_shaped": {}}
+                        },
+                        "minecraft:trigger_type": {
+                            "entries": {"minecraft:tick": {}}
+                        },
+                        "minecraft:frog_variant": {
+                            "entries": {"minecraft:temperate": {}}
+                        },
+                        "minecraft:worldgen/feature": {
+                            "entries": {"minecraft:ore": {}}
+                        },
+                        "minecraft:worldgen/structure_processor": {
+                            "entries": {"minecraft:block_ignore": {}}
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "datapack.json").write_text(
+                json.dumps(
+                    {
+                        "registries": {
+                            "minecraft:cat_variant": {
+                                "elements": True,
+                                "tags": True,
+                            },
+                            "minecraft:dimension_type": {
+                                "elements": True,
+                                "tags": False,
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "items.json").write_text(
+                json.dumps(
+                    {
+                        "minecraft:stick": {
+                            "components": [
+                                {
+                                    "type": "minecraft:max_stack_size",
+                                    "value": 64,
+                                }
+                            ]
+                        },
+                        "minecraft:stone": {
+                            "components": [
+                                {
+                                    "type": "minecraft:max_stack_size",
+                                    "value": 64,
+                                }
+                            ]
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (data / "dimension" / "overworld.json").write_text(
+                json.dumps(
+                    {
+                        "type": "minecraft:overworld",
+                        "generator": {"type": "minecraft:noise"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (data / "dimension_type" / "overworld.json").write_text(
+                json.dumps(
+                    {
+                        "ambient_light": 0.0,
+                        "monster_spawn_light_level": {
+                            "min_inclusive": 0,
+                            "max_inclusive": 7,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (data / "enchantment" / "test.json").write_text(
+                json.dumps({"max_level": 2, "effects": {}}),
+                encoding="utf-8",
+            )
+            (data / "cat_variant" / "test.json").write_text(
+                json.dumps({"asset_id": "example:test"}),
+                encoding="utf-8",
+            )
+            (data / "worldgen" / "configured_feature" / "test.json").write_text(
+                json.dumps({"type": "minecraft:ore", "config": {}}),
+                encoding="utf-8",
+            )
+            (data / "advancement").mkdir()
+            (data / "advancement" / "test.json").write_text(
+                json.dumps(
+                    {
+                        "criteria": {
+                            "tick": {"trigger": "minecraft:tick"}
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (data / "loot_table").mkdir()
+            (data / "loot_table" / "test.json").write_text(
+                json.dumps({"type": "minecraft:generic", "pools": []}),
+                encoding="utf-8",
+            )
+            (data / "recipe").mkdir()
+            (data / "recipe" / "test.json").write_text(
+                json.dumps(
+                    {
+                        "type": "minecraft:crafting_shaped",
+                        "pattern": ["#"],
+                        "key": {"#": "minecraft:stick"},
+                        "result": {"id": "minecraft:stick"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            catalog = HARNESS.build_json_catalog("test", generated)
+
+            self.assertEqual(
+                ["minecraft:custom_name", "minecraft:max_stack_size"],
+                catalog["registry_ids"]["item_component_types"],
+            )
+            self.assertEqual(
+                ["minecraft:ore"],
+                catalog["worldgen_dispatchers"]["minecraft:worldgen/feature"],
+            )
+            self.assertEqual(
+                ["minecraft:block_ignore"],
+                catalog["worldgen_dispatchers"][
+                    "minecraft:worldgen/structure_processor"
+                ],
+            )
+            self.assertEqual(
+                ["minecraft:random_chance"],
+                catalog["registry_ids"]["loot_condition_types"],
+            )
+            self.assertEqual(
+                ["minecraft:tick"],
+                catalog["registry_ids"]["advancement_trigger_types"],
+            )
+            self.assertEqual(
+                ["minecraft:cat_variant", "minecraft:frog_variant"],
+                catalog["variant_registries"],
+            )
+            self.assertEqual(
+                ["minecraft:cat_variant"],
+                catalog["data_driven_variant_registries"],
+            )
+            dimension_fields = catalog["observed_shapes"]["dimension"]["fields"]
+            self.assertEqual(["string"], dimension_fields["$.type"])
+            self.assertEqual(["object"], dimension_fields["$.generator"])
+            dimension_fields = catalog["observed_shapes"]["dimension_type"]["fields"]
+            self.assertEqual(["number"], dimension_fields["$.ambient_light"])
+            self.assertEqual(
+                ["integer"],
+                dimension_fields[
+                    "$.monster_spawn_light_level.max_inclusive"
+                ],
+            )
+            self.assertIn(
+                "not a complete codec schema",
+                catalog["coverage"]["observed_shapes"],
+            )
+            item_defaults = catalog["observed_shapes"]["item_defaults"]
+            self.assertEqual(2, item_defaults["record_count"])
+            self.assertEqual(
+                ["integer"],
+                item_defaults["fields"]["$.components[].value"],
+            )
+            self.assertEqual(
+                ["string"],
+                catalog["observed_shapes"]["advancement"]["fields"][
+                    "$.criteria.tick.trigger"
+                ],
+            )
+            self.assertEqual(
+                ["array"],
+                catalog["observed_shapes"]["loot_table"]["fields"]["$.pools"],
+            )
+            self.assertEqual(
+                ["array"],
+                catalog["observed_shapes"]["recipe"]["fields"]["$.pattern"],
+            )
+            self.assertFalse(
+                any("minecraft:stick" in path for path in item_defaults["fields"])
+            )
+
+            with self.assertRaisesRegex(
+                HARNESS.HarnessError,
+                "does not match requested version",
+            ):
+                HARNESS.build_json_catalog("other", generated)
+
+    def test_catalog_distinguishes_empty_and_unpublished_registries(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            generated = Path(temporary) / "generated"
+            reports = generated / "reports"
+            data = generated / "data" / "minecraft"
+            reports.mkdir(parents=True)
+            data.mkdir(parents=True)
+            (generated / HARNESS.REPORT_PROVENANCE_FILE).write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "version": "test",
+                        "server_sha1": "fixture",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "registries.json").write_text(
+                json.dumps(
+                    {
+                        "minecraft:loot_pool_entry_type": {
+                            "entries": {}
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            catalog = HARNESS.build_json_catalog("test", generated)
+
+            self.assertEqual([], catalog["registry_ids"]["loot_entry_types"])
+            self.assertEqual([], catalog["registry_ids"]["recipe_types"])
+            self.assertEqual(
+                {"minecraft:loot_pool_entry_type": "present"},
+                catalog["registry_sources"]["loot_entry_types"],
+            )
+            self.assertEqual(
+                {"minecraft:recipe_type": "unknown"},
+                catalog["registry_sources"]["recipe_types"],
+            )
+
+    def test_catalog_reads_split_item_component_reports(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            generated = Path(temporary) / "generated"
+            reports = generated / "reports"
+            data = generated / "data" / "minecraft"
+            item_reports = reports / "minecraft" / "components" / "item"
+            item_reports.mkdir(parents=True)
+            data.mkdir(parents=True)
+            (generated / HARNESS.REPORT_PROVENANCE_FILE).write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "version": "26.2",
+                        "server_sha1": "fixture",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "registries.json").write_text("{}", encoding="utf-8")
+            (item_reports / "stick.json").write_text(
+                json.dumps(
+                    {
+                        "minecraft:max_stack_size": 64,
+                        "minecraft:item_name": {
+                            "translate": "item.minecraft.stick"
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (item_reports / "stone.json").write_text(
+                json.dumps({"minecraft:max_stack_size": 64}),
+                encoding="utf-8",
+            )
+
+            catalog = HARNESS.build_json_catalog("26.2", generated)
+            item_defaults = catalog["observed_shapes"]["item_defaults"]
+            self.assertEqual(2, item_defaults["file_count"])
+            self.assertEqual(2, item_defaults["record_count"])
+            self.assertEqual(
+                "reports/<namespace>/components/item/<path>.json",
+                item_defaults["layout"],
+            )
+            self.assertEqual(
+                ["integer"],
+                item_defaults["fields"]["$.minecraft:max_stack_size"],
+            )
+
+    def test_catalog_reads_legacy_worldgen_report_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            generated = Path(temporary) / "generated"
+            reports = generated / "reports"
+            data = generated / "data" / "minecraft"
+            legacy = reports / "worldgen" / "minecraft"
+            transitional = reports / "minecraft"
+            (legacy / "dimension").mkdir(parents=True)
+            (legacy / "dimension_type").mkdir(parents=True)
+            (legacy / "worldgen" / "configured_structure_feature").mkdir(
+                parents=True
+            )
+            (transitional / "dimension").mkdir(parents=True)
+            data.mkdir(parents=True)
+            (generated / HARNESS.REPORT_PROVENANCE_FILE).write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "version": "1.18.2",
+                        "server_sha1": "fixture",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (reports / "registries.json").write_text("{}", encoding="utf-8")
+            (legacy / "dimension" / "overworld.json").write_text(
+                json.dumps(
+                    {
+                        "type": "minecraft:overworld",
+                        "generator": {"type": "minecraft:noise"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (transitional / "dimension" / "the_end.json").write_text(
+                json.dumps(
+                    {
+                        "type": "minecraft:the_end",
+                        "generator": {"type": "minecraft:noise"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (legacy / "dimension_type" / "overworld.json").write_text(
+                json.dumps({"ambient_light": 0.0}),
+                encoding="utf-8",
+            )
+            (
+                legacy
+                / "worldgen"
+                / "configured_structure_feature"
+                / "village.json"
+            ).write_text(
+                json.dumps({"type": "minecraft:jigsaw"}),
+                encoding="utf-8",
+            )
+
+            catalog = HARNESS.build_json_catalog("1.18.2", generated)
+            self.assertEqual(
+                2,
+                catalog["observed_shapes"]["dimension"]["file_count"],
+            )
+            self.assertEqual(
+                ["string"],
+                catalog["observed_shapes"]["dimension"]["fields"]["$.type"],
+            )
+            self.assertEqual(
+                ["number"],
+                catalog["observed_shapes"]["dimension_type"]["fields"][
+                    "$.ambient_light"
+                ],
+            )
+            self.assertEqual(
+                ["string"],
+                catalog["observed_shapes"]["worldgen"]["fields"]["$.type"],
+            )
 
 
 class ServerLogTests(unittest.TestCase):

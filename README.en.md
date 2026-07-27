@@ -4,7 +4,7 @@
 
 A shared harness that resolves exact Minecraft Java Edition releases and makes AI-assisted data pack implementation and validation reproducible across game versions.
 
-Start with the [specification index](docs/README.md) and refer to the [AI authoring contract](docs/ai-authoring.md) when generating a data pack.
+Start with the [specification index](docs/README.md) and refer to the [AI authoring contract](docs/ai-authoring.md) when generating a data pack. The [data-driven JSON parameter index](docs/json-parameters/README.md) maps the principal data-driven JSON families to exact release boundaries.
 
 ## Runtime requirements
 

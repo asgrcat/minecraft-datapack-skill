@@ -3,3 +3,6 @@ tmp/*
 build/
 __pycache__/
 *.py[cod]
+/libraries/
+/logs/
+/versions/
