@@ -2,6 +2,17 @@
 
 このファイルは、共通ハーネスとして利用者側へ影響する変更を記録します。
 
+## 0.1.4
+
+- Java Edition 1.13から26.2までのバージョン境界と26.2の公式生成物を基準に、詳細なデータパック書式リファレンスを追加
+- pack metadata、namespace、resource path、tag、overlayのパラメータと置換規則を追加
+- command tree、argument parser、properties、構文と実行時意味の検証方法を追加
+- dimension、dimension type、biome、environment attributes、timeline、world clockのパラメータ、優先順位、modifier、補間を追加
+- 26.2の全データ駆動registry、item component、predicate、recipe、loot、GameTest、worldgenの配置とfield説明を追加
+- 26.2の全resource種別を説明先と公式server JAR生成物へ対応付けるカバレッジ表を追加
+- universal tagのバージョン別配置、歴史的worldgen path、mob variant／sound variantの種別別field、Sulfur Cube archetypeのnested fieldを補完
+- 文書内の対象表現を「バージョン」「正式リリース」「Java Edition」へ統一
+
 ## 0.1.2
 
 - Claude Code向けにroot `CLAUDE.md`を追加

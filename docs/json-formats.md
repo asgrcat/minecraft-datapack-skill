@@ -2,6 +2,8 @@
 
 この文書はデータパック内ファイルの配置と記法を横断的に定義します。個々の codec は頻繁に変わるため、対象バージョン server JAR の vanilla data と registry report を、そのバージョンの完全なフィールド定義の実例として併用します。
 
+fieldごとの型、既定値、参照関係、26.2の全resource種別は [`reference/README.md`](reference/README.md) と [`reference/coverage.md`](reference/coverage.md) を参照してください。
+
 ## JSON と SNBT を混同しない
 
 ### JSON
@@ -137,7 +139,7 @@ data/<namespace>/
 
 ## 26.2 の安定リリースフォルダ一覧
 
-`data/<namespace>/` 直下で使える主要型:
+`data/<namespace>/`直下で26.2が読み込む全resource path:
 
 ```text
 advancement
@@ -530,6 +532,8 @@ data-driven registry を追加すると experimental 扱いになるバージョ
 
 worldgen は1つの固定 schema ではなく、registry と dispatch `type` ごとの codec 群です。AI は次の順で作成します。
 
+dimension、dimension type、biome、environment attributes、timeline、world clockのfieldは [`reference/world-and-environment.md`](reference/world-and-environment.md)、feature、placement、noise、structureの共通構造は [`reference/worldgen.md`](reference/worldgen.md) を参照します。
+
 1. 対象バージョン server JAR から vanilla data を生成
 2. 作りたい `type` と同じ vanilla file を最小の基底例に選ぶ
 3. `type` 固有 field だけ変更し、参照する biome/feature/noise/tag が対象バージョン registry に存在するか確認
@@ -554,6 +558,8 @@ worldgen は1つの固定 schema ではなく、registry と dispatch `type` ご
 
 enchantment、variant、dialog、trade 等も `type` や effect の組合せが多いため、共通の空 object を「最小例」として生成してはいけません。対象バージョン vanilla に同型がない custom entry では、公式リリースノートの field list を codec として使います。
 
+26.2で要素を定義できる全registryとパラメータの説明は [`reference/registry-formats.md`](reference/registry-formats.md)、item componentとpredicateは [`reference/components-and-predicates.md`](reference/components-and-predicates.md)、recipe、loot、GameTestは [`reference/recipes-loot-and-tests.md`](reference/recipes-loot-and-tests.md) を参照します。
+
 AI の規則:
 
 - file path が registry ID になる
@@ -576,7 +582,9 @@ AI の規則:
 }
 ```
 
-`explosion` は省略可能です。
+`contact_damage`と`explosion`は省略可能です。その他のroot fieldと各nested
+parameterの型・値域は
+[`reference/registry-formats.md`](reference/registry-formats.md)を参照します。
 
 ## JSON を生成する AI のチェックリスト
 

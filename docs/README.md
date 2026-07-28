@@ -10,10 +10,11 @@
 2. [`versions/README.md`](versions/README.md) から完全一致する対象ゲームバージョンを解決する
 3. 対象バージョンファイルの `data_pack_format`、ディレクトリ名、破壊的変更を固定する
 4. [`commands.md`](commands.md) と [`json-formats.md`](json-formats.md) のうち、対象バージョンで利用可能と明記された構文だけを使う
-5. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
-6. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
-7. 複数バージョン対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
-8. project設定が要求する検証levelまで実行し、未実施の上位levelを明記する
+5. fieldの型、既定値、参照関係は [`reference/README.md`](reference/README.md) から該当する書式リファレンスを選ぶ
+6. 複雑な処理では [`execution-model.md`](execution-model.md) と [`state-management.md`](state-management.md) で実行文脈・永続状態を設計する
+7. 追加block/entityを企画へ使う場合は [`content-hooks.md`](content-hooks.md) から観測・制御手段を選ぶ
+8. 複数バージョン対応なら [`compatibility.md`](compatibility.md) に従い、共通部分と overlay を分ける
+9. project設定が要求する検証levelまで実行し、未実施の上位levelを明記する
 
 「最新の構文を古いバージョン向けに書き戻す」より、対象バージョンの仕様を最初から選ぶことを優先してください。`pack_format` が同じでも、コマンド、NBT、レジストリ、JSON の意味が変わる場合があります。
 
@@ -26,6 +27,7 @@
 | [`ai-authoring.md`](ai-authoring.md) | AIがバージョンを解決し、ファイルを生成する決定手順 |
 | [`commands.md`](commands.md) | `.mcfunction` の書式、引数、実行文脈、コマンドのバージョン境界 |
 | [`execution-model.md`](execution-model.md) | executor、位置、分岐、function結果、load/tick/scheduleの細かな挙動 |
+| [`reference/README.md`](reference/README.md) | 配置、field、値型、既定値、参照関係をデータ種別ごとに引く詳細リファレンス |
 | [`state-management.md`](state-management.md) | scoreboard、storage、entity tag、永続性、migration |
 | [`advancements.md`](advancements.md) | criteria、requirements、reward、grant/revoke、player event |
 | [`json-formats.md`](json-formats.md) | `pack.mcmeta` と全データ種別の配置・JSON/SNBT の基本形 |
@@ -41,7 +43,7 @@
 
 ### 基本
 
-`versions/<version>.md` → `commands.md` → `json-formats.md` → `validation.md`
+`versions/<version>.md` → `commands.md` → `json-formats.md` → `reference/README.md` → `validation.md`
 
 対象バージョンで読み込める最小packを作り、構文・配置・JSON codecを確認します。
 

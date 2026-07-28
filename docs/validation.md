@@ -48,14 +48,18 @@ Java の必要バージョンもゲームバージョンに合わせます。代
 
 | 出力 | 使い方 |
 |---|---|
+| `generated/reports/datapack.json` | resourceを追加できるregistry、tag対応、安定性、function／structure形式の照合 |
 | `generated/reports/commands.json` | literal、argument parser、分岐、実行可能な全 command tree |
 | `generated/reports/registries.json` | 対象バージョンに存在する registry と entry ID |
 | block/item 等の report | block state、item、protocol/data の照合 |
+| `generated/reports/minecraft/components/item/` | item IDごとの既定data component |
 | `generated/data/minecraft/` | 対象バージョン codec が実際に読む vanilla tag/recipe/advancement/worldgen の例 |
 
 出力名は古いバージョンで異なる場合があります。まず引数なしで data generator の help を表示し、そのバージョンの `--reports`/`--server` を確認します。
 
 vanilla entry が空、またはcode側にだけ存在する型は `generated/data/minecraft/` にfolderが出ない場合があります。生成folderの不在だけで custom entry不可と判定せず、`registries.json`、release note、対象バージョンでのreloadを併用します。
+
+`registries.json`にIDが存在しても、data packからそのregistryへ新しいelement JSONを追加できるとは限りません。`datapack.json`の`elements`、`tags`、`stable`も確認します。`elements: false`で`tags: true`のregistryは、既存entryのtagを作れても新しいentryを定義できません。
 
 ### command graph の読み方
 
