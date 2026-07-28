@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
+SKILL = ROOT / "skills" / "minecraft-datapack"
 MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 VERSION_TABLE_LINK = re.compile(
     r"^\[([^\]]+)\]\(\.\./versions/([^/)]+)\.md\)$"
@@ -23,6 +24,7 @@ EVENT_JSON_PARAMETER_HEADER = (
 
 def public_markdown_files() -> list[Path]:
     files = list(DOCS.rglob("*.md"))
+    files.extend(SKILL.rglob("*.md"))
     files.extend((ROOT / "templates").rglob("*.md"))
     files.extend(
         (ROOT / name)
@@ -105,6 +107,56 @@ class DocumentationTests(unittest.TestCase):
             (ROOT / "AGENTS.md").read_text(encoding="utf-8"),
             (ROOT / "CLAUDE.md").read_text(encoding="utf-8"),
         )
+
+    def test_skill_frontmatter_is_portable(self) -> None:
+        lines = (SKILL / "SKILL.md").read_text(encoding="utf-8").splitlines()
+        self.assertEqual("---", lines[0])
+        end = lines.index("---", 1)
+        fields = {}
+        for line in lines[1:end]:
+            key, value = line.split(":", 1)
+            fields[key.strip()] = value.strip()
+        self.assertEqual({"name", "description"}, set(fields))
+        self.assertEqual(SKILL.name, fields["name"])
+        self.assertRegex(fields["name"], r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+        self.assertLessEqual(len(fields["name"]), 64)
+        self.assertTrue(fields["description"])
+        self.assertLessEqual(len(fields["description"]), 1024)
+        self.assertLess(len(lines), 500)
+
+    def test_skill_distribution_is_synchronized(self) -> None:
+        differences: list[str] = []
+        for directory in ("docs", "schemas", "templates"):
+            source_files = {
+                path.relative_to(ROOT / directory)
+                for path in (ROOT / directory).rglob("*")
+                if path.is_file()
+            }
+            bundled_files = {
+                path.relative_to(SKILL / directory)
+                for path in (SKILL / directory).rglob("*")
+                if path.is_file()
+            }
+            if source_files != bundled_files:
+                differences.append(f"{directory}: file set")
+            for relative in source_files & bundled_files:
+                if (ROOT / directory / relative).read_bytes() != (
+                    SKILL / directory / relative
+                ).read_bytes():
+                    differences.append(str(Path(directory) / relative))
+        for relative in ("LICENSE", "VERSION", "tools/datapack_harness.py"):
+            if (ROOT / relative).read_bytes() != (SKILL / relative).read_bytes():
+                differences.append(relative)
+        self.assertEqual([], sorted(differences))
+
+    def test_readme_uses_ai_first_skill_setup(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("Claude Code", readme)
+        self.assertIn("Codex", readme)
+        self.assertIn("Cursor", readme)
+        self.assertIn("skills/minecraft-datapack", readme)
+        for command in ("npx ", "npm ", "git submodule add", "git subtree add"):
+            self.assertNotIn(command, readme)
 
     def test_local_markdown_links_exist(self) -> None:
         missing: list[str] = []

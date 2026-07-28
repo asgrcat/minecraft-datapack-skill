@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "profile.schema.json",
+  "title": "Minecraft Java Edition data pack version profile front matter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "edition",
+    "version",
+    "release_date",
+    "data_pack_format",
+    "directory_schema",
+    "inherits",
+    "compatibility"
+  ],
+  "properties": {
+    "edition": {
+      "const": "java"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(?:1\\.[0-9]+(?:\\.[0-9]+)?|[0-9]+\\.[0-9]+(?:\\.[0-9]+)?)$"
+    },
+    "release_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "data_pack_format": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+)?$"
+    },
+    "directory_schema": {
+      "enum": [
+        "plural",
+        "singular"
+      ]
+    },
+    "inherits": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "compatibility": {
+      "enum": [
+        "same-format",
+        "breaking-format",
+        "metadata-break",
+        "hotfix"
+      ]
+    },
+    "compatibility_tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "origin",
+          "behavior-fix",
+          "schema-break",
+          "experimental",
+          "overlay",
+          "item-components",
+          "directory-rename",
+          "text-entity-components",
+          "strict-json",
+          "small-delta",
+          "world-storage"
+        ]
+      },
+      "default": []
+    }
+  }
+}

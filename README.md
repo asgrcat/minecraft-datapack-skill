@@ -1,184 +1,70 @@
-# Minecraft Java Edition Data Pack Harness
+# Minecraft Java Edition データパックスキル
 
 [日本語](README.md) | [English](README.en.md)
 
-Minecraft Java Editionの正式リリースを完全一致で解決し、AIによるデータパック実装と検証をバージョンごとに再現可能にする共通ハーネスです。
+Minecraft Java Edition 1.13 から 26.2 までの正式リリースを対象に、AIがデータパックを設計・実装・検証するための Agent Skill です。対象ゲームバージョンを完全一致で解決し、そのリリースで利用できるコマンド、データ形式、ディレクトリ構造だけを選びます。
 
-仕様の入口は [`docs/README.md`](docs/README.md)、AI生成契約は [`docs/ai-authoring.md`](docs/ai-authoring.md) です。主要なデータ駆動JSONのバージョン別パラメータと意味は[`docs/json-parameters/README.md`](docs/json-parameters/README.md)から参照します。
+Claude Code、Codex、Cursor で共通の [`SKILL.md`](skills/minecraft-datapack/SKILL.md) を利用できます。詳細な仕様、バージョン別プロファイル、テンプレート、検証ハーネスはスキルへ同梱されています。
 
-## 利用環境
+## 追加
 
-- 文書の参照とtemplateのcopyにはPythonやJavaは不要
-- 付属CLIを実行する場合だけPython 3.10以降が必要。`profiles`、`resolve`、`project-check`、基本的な静的検査はPython標準ライブラリだけで動作
-- `fetch`、`reports` は公式Minecraft server JARのdownloadを明示実行する場合だけnetworkを使用
-- `reports` と `server-test` のJava majorは対象バージョンにより異なる
-- `server-test` は利用者が `--accept-eula` を指定しない限り起動しない
+利用中のAIへ、次のようにリポジトリURLと追加したい旨を伝えてください。
 
-導入確認だけではJARをdownloadせず、JavaやMinecraft serverも起動しません。
+> このリポジトリの `skills/minecraft-datapack` を Agent Skill として追加してください: https://github.com/asgrcat/mc-datapack-harness
 
-## 配布単位
+AIは利用中の環境を判別し、スキル一式を対応する領域へ配置します。追加後は次の名前で明示的に呼び出せます。
 
-次を同じrevisionからまとめて配置します。
-
-```text
-README.md
-README.en.md
-VERSION
-LICENSE
-CHANGELOG.md
-docs/
-schemas/
-templates/
-tools/
-tests/
-```
-
-一部だけをcopyするとprofile schema、project schema、文書リンク、テストが一致しなくなるため、上記を一つの配布単位として扱います。保守用の `.github/`、`AGENTS.md`、`CLAUDE.md` は必須配布物ではありません。
-
-## 推奨配置
-
-```text
-consumer-repository/
-├── AGENTS.md
-├── datapack-project.json
-├── datapack/
-└── tools/
-    └── mc-datapack-harness/
-        ├── VERSION
-        ├── LICENSE
-        ├── docs/
-        ├── schemas/
-        ├── templates/
-        ├── tools/
-        └── tests/
-```
-
-以下では `tools/mc-datapack-harness` を `<harness-root>` とします。`vendor/mc-datapack-harness` 等へ置く場合も、以後のpathを一貫して置換すれば動作します。
-
-## 取得方法
-
-### Git submodule
-
-ハーネスのrevisionを利用者repositoryのgitlinkで固定できます。更新差分を分離したい場合の推奨方法です。
-
-```bash
-git submodule add https://github.com/asgrcat/mc-datapack-harness \
-  tools/mc-datapack-harness
-git -C tools/mc-datapack-harness checkout <tag-or-full-commit>
-git add .gitmodules tools/mc-datapack-harness
-```
-
-### Git subtree
-
-利用者repository内へ履歴を取り込み、clone時のsubmodule操作を避けたい場合に使います。
-
-```bash
-git subtree add \
-  --prefix tools/mc-datapack-harness \
-  https://github.com/asgrcat/mc-datapack-harness \
-  <tag-or-commit> --squash
-```
-
-### Release archiveまたはcopy
-
-Git連携を持たせない場合は、同一tagまたはfull commitのarchiveから配布単位をまとめてcopyします。`LICENSE`を削除せず、取得元のtag/full commitを導入記録に残します。
-
-公開release/tagがないrevisionはfull commit SHAで固定します。移動するbranch名だけで導入バージョンを記録しません。
-
-## 初期設定
-
-1. [`templates/datapack-project.json`](templates/datapack-project.json) を利用者repository rootへcopyする
-2. `target_version`、`namespace`、`pack_root`、要求する `validation_level` を編集する。配置先が既定と異なる場合は `$schema` も実際の `<harness-root>` に合わせる
-3. [`templates/AGENTS.snippet.md`](templates/AGENTS.snippet.md) を利用者側の `AGENTS.md` 等へ追記し、`<harness-root>` を実際のpathへ置換する
-
-project設定の必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` の5つです。省略時は次の値を使います。
-
-| field | 既定値 |
+| 環境 | 呼び出し |
 |---|---|
-| `edition` | `java` |
-| `supported_versions.min` / `.max` | `target_version` |
-| `experimental_features` | `false` |
-| `server_type` | `vanilla` |
-| `cache_dir` | `.cache/minecraft` |
-| `report_dir` | `build/minecraft/<target_version>/generated` |
+| Claude Code | `/minecraft-datapack` |
+| Codex | `$minecraft-datapack` |
+| Cursor | `/minecraft-datapack` |
 
-導入済みハーネスのバージョンは `<harness-root>/VERSION` で確認します。submoduleは利用者repositoryのgitlink、subtreeは取り込んだ履歴、archive/copyは取得記録でrevisionを固定します。archive情報等をproject fileにも残したい場合だけ、`harness.version`、`harness.source`、`harness.commit` を任意で追加できます。
+スキルの説明に一致する依頼では、AIが自動的に選択することもできます。
 
-health check:
+## 依頼例
 
-```bash
-HARNESS_ROOT="tools/mc-datapack-harness"
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" --version
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" profiles
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  project-check --project datapack-project.json
-```
+> Java Edition 1.21.5向けに、参加者ごとのスコアを記録するデータパックを作ってください。namespaceは`event`、静的検証まで行ってください。
 
-いずれもnetwork、Java、EULA同意を必要としません。
+> このデータパックを1.20.4から1.20.5へ移行し、item NBTをdata componentへ変更してください。
 
-## AIへ実装を任せる流れ
+> 1.21.11と26.1の両方へ対応できるか調査し、共通部分と分ける必要がある部分を整理してください。
 
-```bash
-HARNESS_ROOT="tools/mc-datapack-harness"
+ゲームバージョン、namespace、配置先、要求する検証レベルが未指定なら、AIが既存プロジェクトから推定し、安全に確定できない値だけを確認します。
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  project-check --project datapack-project.json
+## できること
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" resolve 1.20.5
+- 正式リリースID、data pack format、ディレクトリ構造の完全一致
+- `.mcfunction`、JSON、SNBT、resource locationのバージョン別生成
+- item component、predicate、advancement、loot、recipe、worldgenなどの仕様参照
+- 単一バージョン実装、既存データパックの移行、複数バージョン対応
+- scoreboard、storage、entity tagを使う状態管理とmigration設計
+- 静的検査、公式server JARのreport照合、任意のserver reload検査
+- 実行済み検証と未実施検証を分けた結果報告
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  validate-project --project datapack-project.json
-```
+## 安全な動作
 
-`resolve` のversionはproject設定の `target_version` と一致させます。AIはproject設定が要求するlevelまで検証し、実行していない上位levelを成功と報告しません。
+- 一覧にないsnapshot、pre-release、Bedrock Editionを近い正式リリースへ置き換えません。
+- 対象バージョンで確認できないコマンド、ID、JSON fieldを推測で生成しません。
+- 公式server JARの取得やserver起動へ暗黙に進みません。
+- Minecraft EULAへの同意、既存worldの更新、本番serverへの配置を代行しません。
+- 静的検査だけを実行した場合、server検証済みとは報告しません。
 
-## 検証level
+## スキルの構成
 
-| level | 必要な証拠 | 主張できること |
-|---|---|---|
-| `generated` | profile解決とfile生成 | 対象バージョン向けに生成した |
-| `static` | `validate-project` 成功 | ハーネスの静的検査に成功した |
-| `server` | exact serverでenabled/reload成功 | 対象バージョンのserverで読み込めた |
-| `functional` | 機能test成功 | 記録した機能testに成功した |
+| パス | 役割 |
+|---|---|
+| [`skills/minecraft-datapack/SKILL.md`](skills/minecraft-datapack/SKILL.md) | AIが適用する実装・検証ワークフロー |
+| [`docs/README.md`](docs/README.md) | 仕様索引と対象バージョンの選択手順 |
+| [`docs/versions/README.md`](docs/versions/README.md) | 全正式リリースとdata pack formatの対応 |
+| [`docs/ai-authoring.md`](docs/ai-authoring.md) | 生成時の決定規則と報告契約 |
+| [`templates/datapack-project.json`](templates/datapack-project.json) | プロジェクト設定のひな形 |
+| [`tools/datapack_harness.py`](tools/datapack_harness.py) | プロファイル解決と段階的な検証 |
 
-`static` で完了するprojectは正常な利用形態です。`server` と `functional` は利用者が必要性、EULA、本番影響を判断して明示実行します。
+文書とテンプレートの参照だけで設計・生成できます。付属ハーネスを利用できる環境では、プロファイル解決と静的検査を追加できます。公式server JARを使う検証は、利用者が必要性と実行条件を判断した場合だけ行います。
 
-`generated` levelの自動化は整備中です。配布するconsumer CI templateの最小保証は `static` とし、生成だけをCI成功条件にはしません。
+## 対象範囲
 
-## CI
+Java Editionの正式リリースを対象とします。Bedrock Edition、Modローダー固有仕様、リソースパックだけの仕様、正式リリースに残らなかったsnapshot固有仕様は対象外です。
 
-[`templates/github/workflows/datapack-harness.yml`](templates/github/workflows/datapack-harness.yml) を利用者repositoryの `.github/workflows/` へcopyします。
-
-`DATAPACK_HARNESS_ROOT` と `DATAPACK_PROJECT` の2値を実際の配置へ合わせます。templateはpull requestで `validate-project` を1回実行し、project設定とpackの静的検査をまとめて行います。JAR downloadやserver起動を暗黙に実行しません。
-
-templateはsubmoduleを前提にしません。ハーネスをsubmoduleで導入したrepositoryだけ、checkout stepへ次を追加します。
-
-```yaml
-with:
-  submodules: recursive
-```
-
-## 更新
-
-更新前に [`CHANGELOG.md`](CHANGELOG.md) と導入先の変更を確認します。
-
-- submodule: ハーネス内で新しいtag/full commitをcheckoutし、利用者repositoryでgitlinkをcommit
-- subtree: `git subtree pull --prefix ... <tag-or-commit> --squash`
-- archive/copy: 新旧の配布単位を比較し、利用者が加えた変更を退避してから置換
-
-更新後:
-
-1. `<harness-root>/VERSION` と導入方法が固定するtag/full commitを確認する
-2. 任意の `harness` metadataを使用している場合はその値も更新する
-3. `profiles`、`project-check`、ハーネスのunit testを実行する
-4. 生成済みpackへ要求levelの検証を再実行する
-
-## アンインストール
-
-削除してよい範囲は導入した `<harness-root>` 全体です。submoduleの場合はgitlinkと `.gitmodules` の該当entry、subtree/copyの場合は配置directoryを削除します。
-
-利用者側の `datapack-project.json`、`AGENTS.md` の追記、CI workflow、生成したdata packは利用者repositoryの所有物です。自動削除せず、不要か確認して個別に削除します。cache/reportはproject設定のpathを確認してから削除します。
-
-## 保証範囲
-
-ハーネスは既存worldや本番serverを自動更新せず、world backup、配布、本番導入も代行しません。検証levelごとの詳細は [`docs/harness.md`](docs/harness.md) を参照してください。
+仕様の正本はMojangのリリースノートと対象バージョンの公式server JARです。Minecraft Wikiは境界と説明の照合に使用します。

@@ -1,184 +1,70 @@
-# Minecraft Java Edition Data Pack Harness
+# Minecraft Java Edition Data Pack Skill
 
 [日本語](README.md) | [English](README.en.md)
 
-A shared harness that resolves exact Minecraft Java Edition releases and makes AI-assisted data pack implementation and validation reproducible across game versions.
+An Agent Skill for designing, implementing, and validating Minecraft Java Edition data packs across official releases from 1.13 through 26.2. It resolves the target game version exactly and selects only the commands, data formats, and directory layout available in that release.
 
-Start with the [specification index](docs/README.md) and refer to the [AI authoring contract](docs/ai-authoring.md) when generating a data pack. The [data-driven JSON parameter index](docs/json-parameters/README.md) maps the principal data-driven JSON families to exact release boundaries.
+Claude Code, Codex, and Cursor use the same [`SKILL.md`](skills/minecraft-datapack/SKILL.md). The skill bundles the detailed specification, release profiles, templates, and validation harness.
 
-## Runtime requirements
+## Add the skill
 
-- Reading the documentation and copying templates do not require Python or Java.
-- Python 3.10 or later is required only when running the bundled CLI. `profiles`, `resolve`, `project-check`, and the basic static checks use only the Python standard library.
-- `fetch` and `reports` use the network only when explicitly asked to download an official Minecraft server JAR.
-- The Java major version required by `reports` and `server-test` depends on the target game version.
-- `server-test` does not start a server unless the user supplies `--accept-eula`.
+Give your AI the repository URL and ask it to add the skill:
 
-Installation checks do not download a JAR or start Java or a Minecraft server.
+> Add `skills/minecraft-datapack` from this repository as an Agent Skill: https://github.com/asgrcat/mc-datapack-harness
 
-## Distribution unit
+The AI can identify the active environment and place the complete skill in its supported skill location. After it is added, invoke it explicitly with:
 
-Install the following paths from the same revision:
-
-```text
-README.md
-README.en.md
-VERSION
-LICENSE
-CHANGELOG.md
-docs/
-schemas/
-templates/
-tools/
-tests/
-```
-
-Treat these paths as one distribution unit. Copying only part of the repository can leave the profile schema, project schema, documentation links, and tests out of sync. The maintenance-only `.github/` directory, `AGENTS.md`, and `CLAUDE.md` are not required distribution files.
-
-## Recommended layout
-
-```text
-consumer-repository/
-├── AGENTS.md
-├── datapack-project.json
-├── datapack/
-└── tools/
-    └── mc-datapack-harness/
-        ├── VERSION
-        ├── LICENSE
-        ├── docs/
-        ├── schemas/
-        ├── templates/
-        ├── tools/
-        └── tests/
-```
-
-The examples below use `tools/mc-datapack-harness` as `<harness-root>`. If you install the harness elsewhere, such as `vendor/mc-datapack-harness`, replace the path consistently.
-
-## Installation methods
-
-### Git submodule
-
-A submodule pins the harness revision in the consumer repository's gitlink. This is the recommended method when harness updates should remain separate from the consumer repository's own changes.
-
-```bash
-git submodule add https://github.com/asgrcat/mc-datapack-harness \
-  tools/mc-datapack-harness
-git -C tools/mc-datapack-harness checkout <tag-or-full-commit>
-git add .gitmodules tools/mc-datapack-harness
-```
-
-### Git subtree
-
-A subtree imports the harness history into the consumer repository and avoids extra submodule steps after cloning.
-
-```bash
-git subtree add \
-  --prefix tools/mc-datapack-harness \
-  https://github.com/asgrcat/mc-datapack-harness \
-  <tag-or-commit> --squash
-```
-
-### Release archive or copy
-
-If Git integration is not needed, copy the complete distribution unit from one tag or full-commit archive. Keep `LICENSE` and record the source tag or full commit in the installation record.
-
-If a revision has no public release or tag, pin it by full commit SHA. Do not use a moving branch name as the installed version.
-
-## Initial setup
-
-1. Copy [`templates/datapack-project.json`](templates/datapack-project.json) to the consumer repository root.
-2. Set `target_version`, `namespace`, `pack_root`, and the required `validation_level`. If the harness is installed at a different path, update `$schema` to the actual `<harness-root>`.
-3. Add [`templates/AGENTS.snippet.md`](templates/AGENTS.snippet.md) to the consumer repository's `AGENTS.md` or equivalent instructions, then replace `<harness-root>` with the actual path.
-
-The five required project fields are `schema_version`, `target_version`, `namespace`, `pack_root`, and `validation_level`. Omitted optional fields use these defaults:
-
-| Field | Default |
+| Environment | Invocation |
 |---|---|
-| `edition` | `java` |
-| `supported_versions.min` / `.max` | `target_version` |
-| `experimental_features` | `false` |
-| `server_type` | `vanilla` |
-| `cache_dir` | `.cache/minecraft` |
-| `report_dir` | `build/minecraft/<target_version>/generated` |
+| Claude Code | `/minecraft-datapack` |
+| Codex | `$minecraft-datapack` |
+| Cursor | `/minecraft-datapack` |
 
-Read the installed harness version from `<harness-root>/VERSION`. A submodule pins the revision with its gitlink, a subtree with its imported history, and an archive or copy with its installation record. Add the optional `harness.version`, `harness.source`, and `harness.commit` fields only when the project file should also retain archive or source metadata.
+The AI may also select the skill automatically when a request matches its description.
 
-Health check:
+## Example requests
 
-```bash
-HARNESS_ROOT="tools/mc-datapack-harness"
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" --version
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" profiles
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  project-check --project datapack-project.json
-```
+> Build a Java Edition 1.21.5 data pack that records a score for each participant. Use the `event` namespace and complete static validation.
 
-These commands do not require network access, Java, or EULA acceptance.
+> Migrate this data pack from 1.20.4 to 1.20.5 and replace item NBT with data components.
 
-## AI implementation workflow
+> Determine whether this feature can support both 1.21.11 and 26.1, then separate the shared and release-specific parts.
 
-```bash
-HARNESS_ROOT="tools/mc-datapack-harness"
+If the game version, namespace, output path, or requested validation level is missing, the AI first infers it from the existing project and asks only for values it cannot determine safely.
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  project-check --project datapack-project.json
+## Capabilities
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" resolve 1.20.5
+- Exact official release, data pack format, and directory-layout resolution
+- Release-specific `.mcfunction`, JSON, SNBT, and resource-location generation
+- References for item components, predicates, advancements, loot, recipes, world generation, and other data-driven formats
+- Single-release implementation, existing-pack migration, and multi-release support
+- State and migration design using scoreboards, storage, and entity tags
+- Static checks, official server JAR report comparison, and optional server reload checks
+- Clear reporting of completed and unexecuted validation
 
-python3 "$HARNESS_ROOT/tools/datapack_harness.py" \
-  validate-project --project datapack-project.json
-```
+## Safety
 
-The version passed to `resolve` must match the project's `target_version`. The AI should validate through the level requested by the project and must not report an unexecuted higher level as successful.
+- Unsupported snapshots, pre-releases, and Bedrock Edition versions are not rounded to a nearby official Java Edition release.
+- Commands, IDs, and JSON fields that cannot be confirmed for the target release are not guessed.
+- Official server JAR downloads and server startup are never implicit.
+- The skill does not accept the Minecraft EULA, update existing worlds, or deploy to production servers for the user.
+- Static checks are never reported as successful server validation.
 
-## Validation levels
+## Skill contents
 
-| Level | Required evidence | Supported claim |
-|---|---|---|
-| `generated` | Profile resolution and file generation | Generated for the target game version |
-| `static` | Successful `validate-project` | Passed the harness's static checks |
-| `server` | Enabled and reloaded on the exact server | Loaded on the target game version's server |
-| `functional` | Successful functional tests | Passed the recorded functional tests |
+| Path | Purpose |
+|---|---|
+| [`skills/minecraft-datapack/SKILL.md`](skills/minecraft-datapack/SKILL.md) | Implementation and validation workflow followed by the AI |
+| [`docs/README.md`](docs/README.md) | Specification index and version-selection workflow |
+| [`docs/versions/README.md`](docs/versions/README.md) | Official release and data pack format index |
+| [`docs/ai-authoring.md`](docs/ai-authoring.md) | Generation decisions and reporting contract |
+| [`templates/datapack-project.json`](templates/datapack-project.json) | Project configuration template |
+| [`tools/datapack_harness.py`](tools/datapack_harness.py) | Profile resolution and staged validation |
 
-Completing a project at `static` is a normal use case. `server` and `functional` checks are run explicitly after the user evaluates their necessity, EULA acceptance, and production impact.
-
-Automation for the `generated` level is still under development. The minimum guarantee of the distributed consumer CI template is `static`; generation alone is not treated as CI success.
-
-## CI
-
-Copy [`templates/github/workflows/datapack-harness.yml`](templates/github/workflows/datapack-harness.yml) to the consumer repository's `.github/workflows/` directory.
-
-Set `DATAPACK_HARNESS_ROOT` and `DATAPACK_PROJECT` to the actual paths. On pull requests, the template runs `validate-project` once to check both the project configuration and the data pack statically. It does not implicitly download a JAR or start a server.
-
-The template does not assume a submodule installation. Repositories that install the harness as a submodule should add the following setting to the checkout step:
-
-```yaml
-with:
-  submodules: recursive
-```
-
-## Updating
-
-Before updating, review [`CHANGELOG.md`](CHANGELOG.md) and the changes made in the consumer repository.
-
-- Submodule: check out the new tag or full commit inside the harness, then commit the updated gitlink in the consumer repository.
-- Subtree: run `git subtree pull --prefix ... <tag-or-commit> --squash`.
-- Archive or copy: compare the old and new distribution units, preserve consumer-side changes, and then replace the installed files.
-
-After updating:
-
-1. Verify `<harness-root>/VERSION` and the tag or full commit pinned by the installation method.
-2. If optional `harness` metadata is present, update it as well.
-3. Run `profiles`, `project-check`, and the harness unit tests.
-4. Re-run the requested validation level for the generated pack.
-
-## Uninstalling
-
-The removable scope is the complete installed `<harness-root>`. For a submodule, remove the gitlink and its `.gitmodules` entry. For a subtree or copy, remove the installed directory.
-
-The consumer repository owns its `datapack-project.json`, additions to `AGENTS.md`, CI workflow, and generated data packs. Do not remove them automatically. Review the configured paths before removing caches or reports.
+The documentation and templates are sufficient for design and generation. Where the bundled harness can run, it adds profile resolution and static checking. Checks that use an official server JAR run only after the user evaluates the need and execution conditions.
 
 ## Scope
 
-The harness does not automatically update existing worlds or production servers, and it does not perform world backups, distribution, or production deployment. See [`docs/harness.md`](docs/harness.md) for details about each validation level.
+This skill covers official Java Edition releases. Bedrock Edition, mod-loader-specific behavior, resource-pack-only formats, and snapshot-only behavior that did not remain in an official release are out of scope.
+
+Mojang release notes and the exact release's official server JAR are authoritative. Minecraft Wiki is used to cross-check boundaries and explanations.

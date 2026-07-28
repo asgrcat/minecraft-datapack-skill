@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minecraft Datapack"
+  short_description: "Java Editionデータパックをバージョン別に実装・検証"
+  default_prompt: "Use $minecraft-datapack to build and validate a Java Edition data pack for my target release."

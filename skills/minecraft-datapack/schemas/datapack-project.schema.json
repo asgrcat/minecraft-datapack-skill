@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "datapack-project.schema.json",
+  "title": "Minecraft data pack harness project configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_version",
+    "namespace",
+    "pack_root",
+    "validation_level"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional provenance metadata. The installed VERSION and the installation method remain authoritative.",
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "edition": {
+      "const": "java",
+      "default": "java"
+    },
+    "target_version": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+$"
+    },
+    "pack_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supported_versions": {
+      "type": "object",
+      "description": "Defaults to target_version for both min and max.",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "string"
+        },
+        "max": {
+          "type": "string"
+        }
+      }
+    },
+    "experimental_features": {
+      "type": "boolean",
+      "default": false
+    },
+    "server_type": {
+      "enum": [
+        "vanilla"
+      ],
+      "default": "vanilla"
+    },
+    "validation_level": {
+      "enum": [
+        "generated",
+        "static",
+        "server",
+        "functional"
+      ]
+    },
+    "cache_dir": {
+      "type": "string",
+      "minLength": 1,
+      "default": ".cache/minecraft"
+    },
+    "report_dir": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Defaults to build/minecraft/<target_version>/generated."
+    }
+  }
+}
