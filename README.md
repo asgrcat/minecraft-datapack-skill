@@ -55,11 +55,11 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 | パス | 役割 |
 |---|---|
 | [`skills/minecraft-datapack/SKILL.md`](skills/minecraft-datapack/SKILL.md) | AIが適用する実装・検証ワークフロー |
-| [`docs/README.md`](docs/README.md) | 仕様索引と対象バージョンの選択手順 |
-| [`docs/versions/README.md`](docs/versions/README.md) | 全正式リリースとdata pack formatの対応 |
-| [`docs/ai-authoring.md`](docs/ai-authoring.md) | 生成時の決定規則と報告契約 |
-| [`templates/datapack-project.json`](templates/datapack-project.json) | プロジェクト設定のひな形 |
-| [`tools/datapack_harness.py`](tools/datapack_harness.py) | プロファイル解決と段階的な検証 |
+| [`skills/minecraft-datapack/docs/README.md`](skills/minecraft-datapack/docs/README.md) | 仕様索引と対象バージョンの選択手順 |
+| [`skills/minecraft-datapack/docs/versions/README.md`](skills/minecraft-datapack/docs/versions/README.md) | 全正式リリースとdata pack formatの対応 |
+| [`skills/minecraft-datapack/docs/ai-authoring.md`](skills/minecraft-datapack/docs/ai-authoring.md) | 生成時の決定規則と報告契約 |
+| [`skills/minecraft-datapack/templates/datapack-project.json`](skills/minecraft-datapack/templates/datapack-project.json) | プロジェクト設定のひな形 |
+| [`skills/minecraft-datapack/tools/datapack_harness.py`](skills/minecraft-datapack/tools/datapack_harness.py) | プロファイル解決と段階的な検証 |
 
 文書とテンプレートの参照だけで設計・生成できます。付属ハーネスを利用できる環境では、プロファイル解決と静的検査を追加できます。公式server JARを使う検証は、利用者が必要性と実行条件を判断した場合だけ行います。
 
@@ -68,3 +68,5 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 Java Editionの正式リリースを対象とします。Bedrock Edition、Modローダー固有仕様、リソースパックだけの仕様、正式リリースに残らなかったsnapshot固有仕様は対象外です。
 
 仕様の正本はMojangのリリースノートと対象バージョンの公式server JARです。Minecraft Wikiは境界と説明の照合に使用します。
+
+ライセンスは [`skills/minecraft-datapack/LICENSE`](skills/minecraft-datapack/LICENSE) を参照してください。

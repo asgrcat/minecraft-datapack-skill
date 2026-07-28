@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  DATAPACK_HARNESS_ROOT: .
+  DATAPACK_HARNESS_ROOT: skills/minecraft-datapack
 
 jobs:
   validate:
@@ -21,6 +21,4 @@ jobs:
       - name: Validate profiles
         run: python "$DATAPACK_HARNESS_ROOT/tools/datapack_harness.py" profiles
       - name: Run harness tests
-        run: >-
-          python -m unittest discover
-          -s "$DATAPACK_HARNESS_ROOT/tests" -v
+        run: python -m unittest discover -s tests -v

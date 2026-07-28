@@ -14,9 +14,10 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL = ROOT / "skills" / "minecraft-datapack"
 SPEC = importlib.util.spec_from_file_location(
     "datapack_harness_project_tests",
-    ROOT / "tools" / "datapack_harness.py",
+    SKILL / "tools" / "datapack_harness.py",
 )
 assert SPEC is not None and SPEC.loader is not None
 HARNESS = importlib.util.module_from_spec(SPEC)
@@ -26,7 +27,7 @@ SPEC.loader.exec_module(HARNESS)
 
 def template_config() -> dict[str, Any]:
     return json.loads(
-        (ROOT / "templates" / "datapack-project.json").read_text(
+        (SKILL / "templates" / "datapack-project.json").read_text(
             encoding="utf-8"
         )
     )
@@ -54,7 +55,7 @@ class ProjectConfigurationTests(unittest.TestCase):
 
     def test_distributed_schema_and_template_are_valid_json(self) -> None:
         schema = json.loads(
-            (ROOT / "schemas" / "datapack-project.schema.json").read_text(
+            (SKILL / "schemas" / "datapack-project.schema.json").read_text(
                 encoding="utf-8"
             )
         )
@@ -78,7 +79,7 @@ class ProjectConfigurationTests(unittest.TestCase):
 
     def test_consumer_workflow_is_static_and_installation_agnostic(self) -> None:
         workflow = (
-            ROOT / "templates" / "github" / "workflows" / "datapack-harness.yml"
+            SKILL / "templates" / "github" / "workflows" / "datapack-harness.yml"
         ).read_text(encoding="utf-8")
         self.assertEqual(1, workflow.count("datapack_harness.py"))
         self.assertIn("validate-project", workflow)
@@ -125,23 +126,8 @@ class ProjectConfigurationTests(unittest.TestCase):
         self.assertEqual([], result.errors)
         self.assertEqual([], result.warnings)
 
-    def test_git_install_rejects_a_different_recorded_commit(self) -> None:
-        installed = HARNESS.installed_git_commit()
-        if installed is None:
-            self.skipTest("archive/copy layout has no harness-local git metadata")
-        config = template_config()
-        config["harness"] = {
-            "commit": "0" * 40 if installed != "0" * 40 else "1" * 40
-        }
-        with tempfile.TemporaryDirectory() as temporary:
-            project = self.write_project(Path(temporary), config)
-            _, result = HARNESS.validate_project_config(
-                project,
-                self.profiles,
-            )
-        self.assertTrue(
-            any("does not match installed harness commit" in error for error in result.errors)
-        )
+    def test_skill_does_not_assume_parent_repository_metadata(self) -> None:
+        self.assertIsNone(HARNESS.installed_git_commit())
 
     def test_invalid_project_fields_fail_closed(self) -> None:
         cases = {
@@ -218,14 +204,7 @@ class ProjectConfigurationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             consumer = Path(temporary) / "consumer"
             harness_root = consumer / "tools" / "mc-datapack-harness"
-            harness_root.mkdir(parents=True)
-            for directory in ("docs", "schemas", "tools"):
-                shutil.copytree(
-                    ROOT / directory,
-                    harness_root / directory,
-                    dirs_exist_ok=True,
-                )
-            shutil.copy2(ROOT / "VERSION", harness_root / "VERSION")
+            shutil.copytree(SKILL, harness_root)
 
             completed = subprocess.run(
                 [

@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ROOT / "docs"
 SKILL = ROOT / "skills" / "minecraft-datapack"
+DOCS = SKILL / "docs"
 MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 VERSION_TABLE_LINK = re.compile(
     r"^\[([^\]]+)\]\(\.\./versions/([^/)]+)\.md\)$"
@@ -23,9 +23,7 @@ EVENT_JSON_PARAMETER_HEADER = (
 
 
 def public_markdown_files() -> list[Path]:
-    files = list(DOCS.rglob("*.md"))
-    files.extend(SKILL.rglob("*.md"))
-    files.extend((ROOT / "templates").rglob("*.md"))
+    files = list(SKILL.rglob("*.md"))
     files.extend(
         (ROOT / name)
         for name in ("README.md", "README.en.md", "CHANGELOG.md")
@@ -124,30 +122,16 @@ class DocumentationTests(unittest.TestCase):
         self.assertLessEqual(len(fields["description"]), 1024)
         self.assertLess(len(lines), 500)
 
-    def test_skill_distribution_is_synchronized(self) -> None:
-        differences: list[str] = []
-        for directory in ("docs", "schemas", "templates"):
-            source_files = {
-                path.relative_to(ROOT / directory)
-                for path in (ROOT / directory).rglob("*")
-                if path.is_file()
-            }
-            bundled_files = {
-                path.relative_to(SKILL / directory)
-                for path in (SKILL / directory).rglob("*")
-                if path.is_file()
-            }
-            if source_files != bundled_files:
-                differences.append(f"{directory}: file set")
-            for relative in source_files & bundled_files:
-                if (ROOT / directory / relative).read_bytes() != (
-                    SKILL / directory / relative
-                ).read_bytes():
-                    differences.append(str(Path(directory) / relative))
-        for relative in ("LICENSE", "VERSION", "tools/datapack_harness.py"):
-            if (ROOT / relative).read_bytes() != (SKILL / relative).read_bytes():
-                differences.append(relative)
-        self.assertEqual([], sorted(differences))
+    def test_skill_is_the_only_distribution_source(self) -> None:
+        for relative in (
+            "docs",
+            "schemas",
+            "templates",
+            "tools",
+            "VERSION",
+            "LICENSE",
+        ):
+            self.assertFalse((ROOT / relative).exists(), relative)
 
     def test_readme_uses_ai_first_skill_setup(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -288,7 +272,7 @@ class DocumentationTests(unittest.TestCase):
         self.assertNotIn("step_sound", wolf_sound_row)
 
     def test_changelog_contains_installed_version(self) -> None:
-        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        version = (SKILL / "VERSION").read_text(encoding="utf-8").strip()
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertIn(f"## {version}", changelog)
 

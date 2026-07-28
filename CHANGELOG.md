@@ -2,6 +2,12 @@
 
 このファイルは、スキルと付属ハーネスの利用者へ影響する変更を記録します。
 
+## 0.2.1
+
+- 文書、バージョンプロファイル、schema、template、検証ハーネス、`VERSION`、`LICENSE`の正本を`skills/minecraft-datapack`へ一本化
+- リポジトリ直下の重複する配布物と同期処理を削除
+- README、保守ガイド、CI、テストをスキル配下の正本へ直接接続
+
 ## 0.2.0
 
 - Claude Code、Codex、Cursorで共有できるAgent Skills形式の`minecraft-datapack`スキルを追加

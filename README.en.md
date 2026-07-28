@@ -55,11 +55,11 @@ If the game version, namespace, output path, or requested validation level is mi
 | Path | Purpose |
 |---|---|
 | [`skills/minecraft-datapack/SKILL.md`](skills/minecraft-datapack/SKILL.md) | Implementation and validation workflow followed by the AI |
-| [`docs/README.md`](docs/README.md) | Specification index and version-selection workflow |
-| [`docs/versions/README.md`](docs/versions/README.md) | Official release and data pack format index |
-| [`docs/ai-authoring.md`](docs/ai-authoring.md) | Generation decisions and reporting contract |
-| [`templates/datapack-project.json`](templates/datapack-project.json) | Project configuration template |
-| [`tools/datapack_harness.py`](tools/datapack_harness.py) | Profile resolution and staged validation |
+| [`skills/minecraft-datapack/docs/README.md`](skills/minecraft-datapack/docs/README.md) | Specification index and version-selection workflow |
+| [`skills/minecraft-datapack/docs/versions/README.md`](skills/minecraft-datapack/docs/versions/README.md) | Official release and data pack format index |
+| [`skills/minecraft-datapack/docs/ai-authoring.md`](skills/minecraft-datapack/docs/ai-authoring.md) | Generation decisions and reporting contract |
+| [`skills/minecraft-datapack/templates/datapack-project.json`](skills/minecraft-datapack/templates/datapack-project.json) | Project configuration template |
+| [`skills/minecraft-datapack/tools/datapack_harness.py`](skills/minecraft-datapack/tools/datapack_harness.py) | Profile resolution and staged validation |
 
 The documentation and templates are sufficient for design and generation. Where the bundled harness can run, it adds profile resolution and static checking. Checks that use an official server JAR run only after the user evaluates the need and execution conditions.
 
@@ -68,3 +68,5 @@ The documentation and templates are sufficient for design and generation. Where 
 This skill covers official Java Edition releases. Bedrock Edition, mod-loader-specific behavior, resource-pack-only formats, and snapshot-only behavior that did not remain in an official release are out of scope.
 
 Mojang release notes and the exact release's official server JAR are authoritative. Minecraft Wiki is used to cross-check boundaries and explanations.
+
+See [`skills/minecraft-datapack/LICENSE`](skills/minecraft-datapack/LICENSE) for the license.

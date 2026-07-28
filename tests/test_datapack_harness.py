@@ -15,9 +15,10 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILL = ROOT / "skills" / "minecraft-datapack"
 SPEC = importlib.util.spec_from_file_location(
     "datapack_harness",
-    ROOT / "tools" / "datapack_harness.py",
+    SKILL / "tools" / "datapack_harness.py",
 )
 assert SPEC is not None and SPEC.loader is not None
 HARNESS = importlib.util.module_from_spec(SPEC)
@@ -75,8 +76,8 @@ class ProfileTests(unittest.TestCase):
         )
 
     def test_known_boundaries_are_documented(self) -> None:
-        commands = (ROOT / "docs" / "commands.md").read_text(encoding="utf-8")
-        formats = (ROOT / "docs" / "json-formats.md").read_text(encoding="utf-8")
+        commands = (SKILL / "docs" / "commands.md").read_text(encoding="utf-8")
+        formats = (SKILL / "docs" / "json-formats.md").read_text(encoding="utf-8")
         self.assertIn("1.13〜1.20.6 では `data/<namespace>/functions/", commands)
         self.assertIn("`@n` | 最寄り entity。1.21 以降", commands)
         self.assertIn("| trial_spawner | 1.21.2 |", formats)
