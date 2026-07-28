@@ -48,10 +48,11 @@ Java の必要バージョンもゲームバージョンに合わせます。代
 
 | 出力 | 使い方 |
 |---|---|
+| `generated/reports/datapack.json` | resourceを追加できるregistry、tag対応、安定性、function／structure形式の照合 |
 | `generated/reports/commands.json` | literal、argument parser、分岐、実行可能な全 command tree |
 | `generated/reports/registries.json` | data generatorがこのreportに公開するregistryとentry ID |
-| `generated/reports/datapack.json` | 対応バージョンで生成される場合、data packから追加できるregistryと配置 |
 | block/item 等の report | block state、item、protocol/data の照合 |
+| `generated/reports/minecraft/components/item/` | item IDごとの既定data component |
 | `generated/data/minecraft/` | 対象バージョンのcodecが実際に読むvanilla tag/recipe/advancement/worldgenの例。旧バージョンのworldgen例はreport側へ出る場合がある |
 
 出力名は古いバージョンで異なる場合があります。まず引数なしで data generator の help を表示し、そのバージョンの `--reports`/`--server` を確認します。
@@ -68,6 +69,8 @@ python3 tools/datapack_harness.py json-catalog "$TARGET_VERSION" \
 
 registry ID一覧とvanilla観測fieldの保証範囲は[`json-parameters/README.md`](json-parameters/README.md)を参照してください。カタログの`registry_sources`が`unknown`、または`source.datapack`が`null`の場合は、空配列を機能非対応の証拠にしません。
 catalog作成時は`reports` commandが生成した`.datapack-harness-report.json`を照合し、指定versionとreportの正式リリースが異なる場合は失敗します。
+
+`registries.json`にIDが存在しても、data packからそのregistryへ新しいelement JSONを追加できるとは限りません。`datapack.json`の`elements`、`tags`、`stable`も確認します。`elements: false`で`tags: true`のregistryは、既存entryのtagを作れても新しいentryを定義できません。
 
 ### command graph の読み方
 

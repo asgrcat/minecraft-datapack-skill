@@ -4,6 +4,8 @@
 
 executor、位置、分岐、function結果、load/tick/scheduleの実行意味は [`execution-model.md`](execution-model.md)、scoreboardとstorageの設計は [`state-management.md`](state-management.md) で詳しく扱います。
 
+`commands.json`のnode、argument parser、propertiesを人間向けに読む方法は [`reference/command-tree.md`](reference/command-tree.md) を参照してください。
+
 ## `.mcfunction` の字句規則
 
 ```mcfunction

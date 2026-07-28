@@ -23,6 +23,18 @@
 - [Minecraft Wiki: Creating a data pack](https://minecraft.wiki/w/Tutorial:Creating_a_data_pack)
 - [Minecraft Wiki: Running the data generator](https://minecraft.wiki/w/Tutorial:Running_the_data_generator)
 
+詳細書式リファレンスで特に使う一次資料:
+
+- [Mojang: Java Edition 1.18.2](https://feedback.minecraft.net/hc/en-us/articles/4531177623437-Minecraft-Java-Edition-1-18-2): universal registry tag、density function、configured structure
+- [Mojang: Java Edition 1.20.5](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-20-5): item stack component、loot、predicate、recipe result
+- [Mojang: Java Edition 1.21](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21): enchantment、painting、jukebox song、単数形ディレクトリ
+- [Mojang: Java Edition 1.21.5](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-5): text／SNBT、entity component、GameTest、mob variant／spawn condition
+- [Mojang: Java Edition 1.21.11](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-11): environment attributes、timeline、modifier、補間
+- [Mojang: Java Edition 26.1](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-1): world clock、time marker、trade、sound variant
+- [Mojang: Java Edition 26.2](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-2): entity predicate、worldgen、dimension type、Sulfur Cube
+
+26.2以降のdata generatorが出力する`reports/datapack.json`は、data packから要素を定義できるregistry、tag対応、安定性を列挙します。`registries.json`だけでは「IDが存在すること」と「data packから新規entryを追加できること」を区別できないため、両方を照合します。
+
 ## gameplay要素
 
 block、entity、itemの追加情報は、対象正式リリースのMojang release noteを一次資料にします。データパックから利用できる入口は次の順で確定します。

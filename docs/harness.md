@@ -111,6 +111,12 @@ data generatorは自動削除される一時working directoryで実行します�
 
 ハーネスは必要majorを表示します。複数JDKがある環境では `--java` へ対象バージョン用の実行ファイルを指定します。
 
+現行のdata generatorでは、`commands.json`、`registries.json`に加えて
+`datapack.json`も確認します。`datapack.json`は、各registryについてdata pack
+からelementを追加できるか、tagを持てるか、安定した組み込みregistryかを
+区別します。itemの既定componentは`reports/minecraft/components/item/`、
+実際のJSON例は`data/minecraft/`を使います。
+
 ## 5. JSONパラメータカタログ
 
 data generatorの出力から、対象バージョン固有のitem component、enchantment effect、variant、worldgen、predicate、advancement trigger、loot、recipeのtype IDと、vanilla JSONで観測できるfield pathを集計します。
