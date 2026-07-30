@@ -8,6 +8,8 @@
 
 front matterの機械可読schemaは [`profile.schema.json`](profile.schema.json) です。`compatibility` は基本クラス、`compatibility_tags` は追加の移行理由を表します。`tools/datapack_harness.py profiles` で全バージョンのschema、継承、共通見出しを検査できます。
 
+26.3の開発バージョンは正式リリース表へ混ぜず、[`../snapshots/README.md`](../snapshots/README.md) に分離しています。
+
 | Java Edition | 公開日 | data pack format | folder | 互換性 |
 |---|---:|---:|---|---|
 | [1.13](1.13.md) | 2018-07-18 | 4 | 複数形 | 起点・全面破壊 |

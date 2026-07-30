@@ -20,15 +20,15 @@ python3 <harness-root>/tools/datapack_harness.py \
 - 省略された任意fieldにはハーネスの既定値を適用する。必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level`
 - 実装要件はproject設定とは別に管理する
 - `edition` は `java` だけを受け付ける
-- versionは [`versions/README.md`](versions/README.md) の正式リリースのIDに完全一致させる
-- 一覧にないsnapshot/pre-release/Bedrock Editionを最寄りバージョンへ丸めない
+- versionは [`versions/README.md`](versions/README.md) の正式リリース、または [`snapshots/README.md`](snapshots/README.md) の収録済みスナップショットIDに完全一致させる
+- 一覧にないsnapshot/pre-release/Bedrock Editionを最寄りバージョンへ丸めない。`26.3`を最新の26.3スナップショットとして解釈しない
 - `26.1` を `1.26.1` に変換しない。文字列の辞書順や単純なsemver比較を使わず、version indexの順序を使う
 
 ## 解決アルゴリズム
 
 ```text
 resolve(target_version):
-  profile = versions/<target_version>.md
+  profile = versions/<target_version>.md or snapshots/<target_version>.md
   if profile does not exist:
     stop as unsupported
 
@@ -38,8 +38,8 @@ resolve(target_version):
   rule_history = ancestor rules for reference only
   json_parameter_history = chain's "JSONパラメータ差分" sections in order
 
-  exact_release = official_manifest.release[target_version]
-  reports = generate_reports(exact_release.server_jar)
+  exact_version = official_manifest[target_version]
+  reports = generate_reports(exact_version.server_jar)
   capabilities.commands = reports/commands.json
   capabilities.registries = reports/registries.json
   capabilities.datapack_registries = reports/datapack.json if present
@@ -159,6 +159,12 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 
 26.2ではunknown fieldを拒否するため、旧 `type` を互換用に併記しません。
 
+### 26.3スナップショット
+
+26.3の開発バージョンは `26.3-snapshot-1`〜`26.3-snapshot-6` を完全一致で選びます。各スナップショットでdata pack formatと破壊的変更が進むため、「26.3向け」や「最新snapshot向け」という曖昧な対象では生成しません。
+
+スナップショット向け生成では、隔離した実験world、対象JARのreport、対象formatへ固定したmetadataを必須にし、正式リリース互換とは報告しません。
+
 ## 複数バージョン
 
 1. 最古バージョンの機能集合を基底にする
@@ -166,7 +172,7 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 3. 同一pathで両立しないfileをoverlayへ
 4. 1.20.2未満を含む場合、overlayを利用できないため別pack配布も検討
 5. 1.21.9のmetadata境界をまたぐ場合、旧reader用fieldを残す条件を適用
-6. 全正式リリースでtestできない場合、「対応済み」と断定しない
+6. 対象範囲の全正式リリース／スナップショットでtestできない場合、「対応済み」と断定しない
 
 ## 検証levelと報告
 

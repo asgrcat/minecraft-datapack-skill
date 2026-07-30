@@ -27,6 +27,7 @@ from typing import Any, Iterable
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 VERSIONS_DIR = REPOSITORY_ROOT / "docs" / "versions"
+SNAPSHOTS_DIR = REPOSITORY_ROOT / "docs" / "snapshots"
 PROFILE_SCHEMA_PATH = VERSIONS_DIR / "profile.schema.json"
 PROJECT_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "datapack-project.schema.json"
 VERSION_PATH = REPOSITORY_ROOT / "VERSION"
@@ -252,11 +253,16 @@ def extract_json_parameter_changes(path: Path) -> list[tuple[str, str]]:
 
 
 def profile_files() -> list[Path]:
-    return sorted(
-        path
-        for path in VERSIONS_DIR.glob("*.md")
-        if path.name != "README.md"
-    )
+    paths: list[Path] = []
+    for directory in (VERSIONS_DIR, SNAPSHOTS_DIR):
+        if not directory.is_dir():
+            continue
+        paths.extend(
+            path
+            for path in directory.glob("*.md")
+            if path.name != "README.md"
+        )
+    return sorted(paths)
 
 
 def load_profiles() -> dict[str, dict[str, Any]]:
@@ -295,6 +301,23 @@ def validate_profile(
         errors.append(f"{path}: invalid version")
     elif path.stem != version:
         errors.append(f"{path}: filename and version differ")
+    channel = profile.get("channel", "release")
+    if channel not in {"release", "snapshot"}:
+        errors.append(f"{path}: invalid channel")
+    snapshot_for = profile.get("snapshot_for")
+    is_snapshot_path = path.parent == SNAPSHOTS_DIR
+    if is_snapshot_path:
+        if channel != "snapshot":
+            errors.append(f"{path}: snapshot profile must set channel: snapshot")
+        if not isinstance(snapshot_for, str):
+            errors.append(f"{path}: snapshot profile must set snapshot_for")
+        if isinstance(version, str) and "-snapshot-" not in version:
+            errors.append(f"{path}: snapshot profile version must use -snapshot-N")
+    else:
+        if channel != "release":
+            errors.append(f"{path}: release profile channel must be release")
+        if snapshot_for is not None:
+            errors.append(f"{path}: release profile must not set snapshot_for")
     if profile.get("edition") != "java":
         errors.append(f"{path}: edition must be java")
     directory_schema = profile.get("directory_schema")
@@ -370,7 +393,7 @@ def resolve_chain(
     profiles: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
     if version not in profiles:
-        raise HarnessError(f"unsupported formal release profile: {version}")
+        raise HarnessError(f"unsupported version profile: {version}")
     chain: list[dict[str, Any]] = []
     seen: set[str] = set()
     current: str | None = version
@@ -406,7 +429,7 @@ def validate_all_profiles(profiles: dict[str, dict[str, Any]]) -> list[str]:
     try:
         order = ordered_versions(profiles)
         if len(order) != len(profiles):
-            errors.append("not every profile is reachable from the latest release")
+            errors.append("not every profile is reachable from the latest version")
     except HarnessError as error:
         errors.append(str(error))
     return errors
@@ -415,6 +438,7 @@ def validate_all_profiles(profiles: dict[str, dict[str, Any]]) -> list[str]:
 def public_profile(profile: dict[str, Any]) -> dict[str, Any]:
     result = {key: value for key, value in profile.items() if key != "_path"}
     result.setdefault("compatibility_tags", [])
+    result.setdefault("channel", "release")
     return result
 
 
@@ -489,23 +513,25 @@ def download_file(url: str, destination: Path) -> None:
 
 def fetch_release(version: str, cache_dir: Path) -> tuple[Path, dict[str, Any]]:
     manifest = fetch_json(VERSION_MANIFEST_URL)
+    expected_type = "snapshot" if "-snapshot-" in version else "release"
     matches = [
         item
         for item in manifest.get("versions", [])
-        if item.get("id") == version and item.get("type") == "release"
+        if item.get("id") == version and item.get("type") == expected_type
     ]
     if len(matches) != 1:
         raise HarnessError(
-            f"official manifest has {len(matches)} exact release matches for {version}"
+            f"official manifest has {len(matches)} exact {expected_type} "
+            f"matches for {version}"
         )
     metadata = fetch_json(matches[0]["url"])
     server = metadata.get("downloads", {}).get("server")
     if not server:
         raise HarnessError(f"{version}: official metadata has no server download")
 
-    release_dir = cache_dir / version
-    jar_path = release_dir / "server.jar"
-    metadata_path = release_dir / "version.json"
+    version_dir = cache_dir / version
+    jar_path = version_dir / "server.jar"
+    metadata_path = version_dir / "version.json"
     if not jar_path.exists() or sha1_file(jar_path) != server["sha1"]:
         download_file(server["url"], jar_path)
     actual = sha1_file(jar_path)
@@ -513,7 +539,7 @@ def fetch_release(version: str, cache_dir: Path) -> tuple[Path, dict[str, Any]]:
         raise HarnessError(
             f"{version}: SHA-1 mismatch: expected {server['sha1']}, got {actual}"
         )
-    release_dir.mkdir(parents=True, exist_ok=True)
+    version_dir.mkdir(parents=True, exist_ok=True)
     metadata_path.write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -1130,6 +1156,16 @@ def validate_project_config(
 
     if not isinstance(config.get("experimental_features"), bool):
         result.error(f"{project_path}: experimental_features must be boolean")
+    elif (
+        isinstance(target, str)
+        and target in profiles
+        and profiles[target].get("channel", "release") == "snapshot"
+        and not config["experimental_features"]
+    ):
+        result.error(
+            f"{project_path}: snapshot target_version requires "
+            "experimental_features: true"
+        )
     if config.get("server_type") != "vanilla":
         result.error(f"{project_path}: server_type must be vanilla")
     if config.get("validation_level") not in VALIDATION_LEVELS:
@@ -1774,7 +1810,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="override report_dir from the project configuration",
     )
 
-    resolve = subparsers.add_parser("resolve", help="resolve one formal release profile")
+    resolve = subparsers.add_parser("resolve", help="resolve one version profile")
     resolve.add_argument("version")
 
     fetch = subparsers.add_parser("fetch", help="download and SHA-1 verify server JAR")
@@ -1891,7 +1927,7 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return status
         if args.version not in profiles:
-            raise HarnessError(f"unsupported formal release profile: {args.version}")
+            raise HarnessError(f"unsupported version profile: {args.version}")
 
         if args.command == "resolve":
             payload = resolved_profile_payload(args.version, profiles)

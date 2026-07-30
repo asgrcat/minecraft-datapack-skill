@@ -285,6 +285,19 @@ entity tag は resource location ではなく文字列で、保存 NBT の `Tags
 | 26.1 | `/time` が world clock/timeline 対応へ変更 |
 | 26.2 | `/unpublish`、team/waypoint の色名を lowercase snake_case のみに制限 |
 
+### 26.3スナップショット
+
+| launcher ID | 追加・変更 |
+|---|---|
+| 26.3-snapshot-1 | `/item` と `execute if|unless items` をslot source化。`give`／`tick`の失敗通知と`team join|leave`のresultを修正 |
+| 26.3-snapshot-2 | command tree固有差分なし |
+| 26.3-snapshot-3 | `/posteffect add|clear|list|remove`、`/place feature`のinline feature |
+| 26.3-snapshot-4 | sign click eventを既定無効化。`spreadplayers`の安全判定をblock tag化 |
+| 26.3-snapshot-5 | command tree固有差分なし |
+| 26.3-snapshot-6 | `/publish`から`gamemode`引数を削除 |
+
+スナップショットのcommandは開発中です。正式リリース表の「現行コマンド」へ合成せず、対象IDの`commands.json`を正本にします。
+
 ## 現行コマンドの分類
 
 26.2 の通常 command set を、AI が用途を選ぶために分類します。対象バージョンに存在するかは上表と `commands.json` で制限してください。

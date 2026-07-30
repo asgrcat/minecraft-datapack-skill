@@ -2,11 +2,11 @@
 
 ## 優先順位
 
-1. **Mojang 公式リリースノート**: 正式リリースの technical changes、data pack version、移行事項の一次資料
-2. **Mojang 公式 version manifest / server JAR**: 正式リリース ID、公開時刻、実際の command graph、registry、vanilla data の機械可読な正本
+1. **Mojang 公式リリースノート／スナップショット記事**: 対象バージョンの technical changes、data pack version、移行事項の一次資料
+2. **Mojang 公式 version manifest / server JAR**: 正式リリース／スナップショット ID、公開時刻、実際の command graph、registry、vanilla data の機械可読な正本
 3. **Minecraft Wiki**: 複数スナップショットに分散した変更履歴、構文表、pack format 対応表の照合
 
-資料間に食い違いがあるときは、対象正式リリースの server JAR の挙動を優先します。Wiki だけにある記述には、可能な限りバージョンページまたはコマンド/JSON 個別ページを併記します。
+資料間に食い違いがあるときは、対象IDの server JAR の挙動を優先します。Wiki だけにある記述には、可能な限りバージョンページまたはコマンド/JSON 個別ページを併記します。
 
 ## 共通資料
 
@@ -32,6 +32,12 @@
 - [Mojang: Java Edition 1.21.11](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-11): environment attributes、timeline、modifier、補間
 - [Mojang: Java Edition 26.1](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-1): world clock、time marker、trade、sound variant
 - [Mojang: Java Edition 26.2](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-2): entity predicate、worldgen、dimension type、Sulfur Cube
+- [Mojang: 26.3 Snapshot 1](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-1): slot source、pottery、configured feature／material rule再編
+- [Mojang: 26.3 Snapshot 2](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-2): block transformer、feature／carver再編
+- [Mojang: 26.3 Snapshot 3](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-3): post effect、number provider、brewing recipe
+- [Mojang: 26.3 Snapshot 4](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-4): registry参照、loot／predicate／advancement再編
+- [Mojang: 26.3 Snapshot 5](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-5): inline値と参照の混在list
+- [Mojang: 26.3 Snapshot 6](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-6): fuel inline数値、noise／density function再編
 
 26.2以降のdata generatorが出力する`reports/datapack.json`は、data packから要素を定義できるregistry、tag対応、安定性を列挙します。`registries.json`だけでは「IDが存在すること」と「data packから新規entryを追加できること」を区別できないため、両方を照合します。
 
@@ -70,14 +76,16 @@ Minecraft Wiki はコミュニティ運営であり Mojang 公式ではありま
 
 ## `release_date` の定義
 
-バージョンプロファイルの `release_date` は、Mojangが一般利用者向けに正式リリースを公開したcalendar dateです。地域表示による日付差がある場合は、バージョンページと公式告知で採用した日付を記録します。
+正式リリースプロファイルの `release_date` は、Mojangが一般利用者向けに正式リリースを公開したcalendar dateです。スナップショットプロファイルでは、そのスナップショットの公開日を表します。地域表示による日付差がある場合は、バージョンページと公式告知で採用した日付を記録します。
 
-公式version manifestの `releaseTime` はartifact metadataのtimestampであり、`release_date` と一致することを要求しません。JAR取得、正式リリースの完全一致、並び順の機械処理には `release_date` を使わず、manifestのrelease ID、`releaseTime`、download URL、SHA-1を使います。
+公式version manifestの `releaseTime` はartifact metadataのtimestampであり、`release_date` と一致することを要求しません。JAR取得、対象IDの完全一致、並び順の機械処理には `release_date` を使わず、manifestのID、type、`releaseTime`、download URL、SHA-1を使います。
 
-Wiki の `Pack format` 本文や一覧には更新遅れの注意書きが出る場合があります。本リポジトリでは安定リリースの値を各公式 release note、公式 version manifest、Wiki のバージョン別ページおよび `Template:Data_pack_format` と照合しました。また、Wiki の現行 folder一覧に表示される `upcoming`（現在は26.3 snapshot）項目は、26.2の安定リリース一覧から除外しています。
+Wiki の `Pack format` 本文や一覧には更新遅れの注意書きが出る場合があります。本リポジトリでは安定リリースの値を各公式 release note、公式 version manifest、Wiki のバージョン別ページおよび `Template:Data_pack_format` と照合しました。26.3の開発値は安定リリース一覧から除外し、[`snapshots/README.md`](snapshots/README.md) へ分離しています。
 
 ## 更新日
 
-最終照合日: 2026-07-28（JST）
+最終照合日: 2026-07-30（JST）
 
 対象となる最新正式リリース: Java Edition 26.2（2026-06-16、data pack format 107.1）
+
+対象となる最新収録スナップショット: Java Edition 26.3 Snapshot 6（2026-07-28、data pack format 113.0）

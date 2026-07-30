@@ -120,6 +120,19 @@ patchリリースを含む全正式リリースの履歴は各versionページ�
 
 この表の`継承`はpack formatが同じという意味ではありません。familyに直接のparameter変更が記録されていない場合でも、folder、text component、predicate、resource IDなど周辺codecが変わることがあります。
 
+## 26.3スナップショット境界
+
+次は開発中の差分です。正式リリース表へ合成せず、各 [`snapshots/<launcher-id>.md`](../snapshots/README.md) の9 family差分を`inherits`順に適用します。
+
+| launcher ID | data pack format | 主要境界 |
+|---|---:|---|
+| [`26.3-snapshot-1`](../snapshots/26.3-snapshot-1.md) | 108.0 | slot source resource、pot decoration item stack化、configured feature／material rule再編 |
+| [`26.3-snapshot-2`](../snapshots/26.3-snapshot-2.md) | 109.0 | `block_transformer`、feature type rename、carver再編 |
+| [`26.3-snapshot-3`](../snapshots/26.3-snapshot-3.md) | 110.0 | `compostable`、number provider registry、brewing recipe |
+| [`26.3-snapshot-4`](../snapshots/26.3-snapshot-4.md) | 111.0 | loot／predicate／advancementのdiscriminator・参照・condition再編 |
+| [`26.3-snapshot-5`](../snapshots/26.3-snapshot-5.md) | 112.0 | inline値とID参照を同じelement listへ混在可能 |
+| [`26.3-snapshot-6`](../snapshots/26.3-snapshot-6.md) | 113.0 | fuel／compostableのinline数値、noise／density function再編 |
+
 ## 対象バージョンの機械カタログ
 
 ハーネスから公式JARのdata generatorを実行した後、次のコマンドで対象バージョン固有のJSONカタログを作成します。`reports`が記録するversion/SHA-1 provenanceと指定versionが一致しない出力は拒否されます。

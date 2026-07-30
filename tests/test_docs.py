@@ -129,9 +129,18 @@ class DocumentationTests(unittest.TestCase):
             "templates",
             "tools",
             "VERSION",
-            "LICENSE",
         ):
             self.assertFalse((ROOT / relative).exists(), relative)
+        root_license = ROOT / "LICENSE"
+        self.assertTrue(root_license.is_symlink())
+        self.assertEqual(
+            (SKILL / "LICENSE").resolve(),
+            root_license.resolve(),
+        )
+        self.assertEqual(
+            (SKILL / "LICENSE").read_text(encoding="utf-8"),
+            root_license.read_text(encoding="utf-8"),
+        )
 
     def test_readme_uses_ai_first_skill_setup(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

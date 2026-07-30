@@ -186,6 +186,35 @@ class ProjectConfigurationTests(unittest.TestCase):
             any("outside supported_versions" in error for error in result.errors)
         )
 
+    def test_snapshot_target_requires_explicit_experimental_opt_in(self) -> None:
+        config = template_config()
+        config["target_version"] = "26.3-snapshot-6"
+        config["supported_versions"] = {
+            "min": "26.3-snapshot-6",
+            "max": "26.3-snapshot-6",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            project = self.write_project(Path(temporary), config)
+            _, result = HARNESS.validate_project_config(
+                project,
+                self.profiles,
+            )
+            self.assertTrue(
+                any(
+                    "requires experimental_features: true" in error
+                    for error in result.errors
+                )
+            )
+
+            config["experimental_features"] = True
+            project = self.write_project(Path(temporary), config)
+            loaded, result = HARNESS.validate_project_config(
+                project,
+                self.profiles,
+            )
+        self.assertIsNotNone(loaded)
+        self.assertEqual([], result.errors)
+
     def test_project_check_works_from_nested_harness_layout(self) -> None:
         config = template_config()
         with tempfile.TemporaryDirectory() as temporary:
@@ -219,7 +248,7 @@ class ProjectConfigurationTests(unittest.TestCase):
             )
 
         self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertIn("validated 50 profiles", completed.stdout)
+        self.assertIn("validated 56 profiles", completed.stdout)
 
     def test_validate_project_uses_configured_pack_root(self) -> None:
         config = template_config()

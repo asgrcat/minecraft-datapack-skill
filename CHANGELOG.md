@@ -2,6 +2,13 @@
 
 このファイルは、スキルと付属ハーネスの利用者へ影響する変更を記録します。
 
+## 0.2.2
+
+- Java Edition `26.3-snapshot-1`〜`26.3-snapshot-6`のプロファイルとdata pack format 108.0〜113.0を追加
+- snapshotを正式リリース索引から分離しつつ、完全一致のresolve、公式JAR取得、report、静的検査へ対応
+- slot source、block transformer、number provider、brewing recipe、loot／predicate／advancement再編、noise／density function再編を収録
+- リポジトリ直下へ、スキル配下の正本を指す`LICENSE`を追加
+
 ## 0.2.1
 
 - 文書、バージョンプロファイル、schema、template、検証ハーネス、`VERSION`、`LICENSE`の正本を`skills/minecraft-datapack`へ一本化

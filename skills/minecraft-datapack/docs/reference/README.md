@@ -2,6 +2,8 @@
 
 このディレクトリは、Java Edition 1.13から26.2までの正式リリースを対象に、データパックの配置、書式、パラメータ、参照関係を人間が追える形でまとめます。対象バージョンの差分は [`../versions/README.md`](../versions/README.md)、完全なコマンド木とregistry IDは対象バージョンの公式server JARが生成するreportを正本とします。
 
+26.3スナップショットでは、この安定仕様を基底に [`../snapshots/README.md`](../snapshots/README.md) の差分を順に適用し、対象スナップショットのserver JARで全fieldを再検証します。
+
 ## 読み方
 
 1. [`../versions/README.md`](../versions/README.md) で対象バージョンを完全一致させる

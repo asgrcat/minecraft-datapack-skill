@@ -2,7 +2,7 @@
 
 [日本語](README.md) | [English](README.en.md)
 
-Minecraft Java Edition 1.13 から 26.2 までの正式リリースを対象に、AIがデータパックを設計・実装・検証するための Agent Skill です。対象ゲームバージョンを完全一致で解決し、そのリリースで利用できるコマンド、データ形式、ディレクトリ構造だけを選びます。
+Minecraft Java Edition 1.13 から 26.2 までの正式リリースと、収録済みの26.3スナップショットを対象に、AIがデータパックを設計・実装・検証するための Agent Skill です。対象ゲームバージョンを完全一致で解決し、そのバージョンで利用できるコマンド、データ形式、ディレクトリ構造だけを選びます。
 
 Claude Code、Codex、Cursor で共通の [`SKILL.md`](skills/minecraft-datapack/SKILL.md) を利用できます。詳細な仕様、バージョン別プロファイル、テンプレート、検証ハーネスはスキルへ同梱されています。
 
@@ -34,7 +34,7 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 
 ## できること
 
-- 正式リリースID、data pack format、ディレクトリ構造の完全一致
+- 正式リリース／収録済みスナップショットID、data pack format、ディレクトリ構造の完全一致
 - `.mcfunction`、JSON、SNBT、resource locationのバージョン別生成
 - item component、predicate、advancement、loot、recipe、worldgenなどの仕様参照
 - 単一バージョン実装、既存データパックの移行、複数バージョン対応
@@ -44,7 +44,7 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 
 ## 安全な動作
 
-- 一覧にないsnapshot、pre-release、Bedrock Editionを近い正式リリースへ置き換えません。
+- 一覧にないsnapshot、pre-release、Bedrock Editionを近い収録済みバージョンへ置き換えません。
 - 対象バージョンで確認できないコマンド、ID、JSON fieldを推測で生成しません。
 - 公式server JARの取得やserver起動へ暗黙に進みません。
 - Minecraft EULAへの同意、既存worldの更新、本番serverへの配置を代行しません。
@@ -57,6 +57,7 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 | [`skills/minecraft-datapack/SKILL.md`](skills/minecraft-datapack/SKILL.md) | AIが適用する実装・検証ワークフロー |
 | [`skills/minecraft-datapack/docs/README.md`](skills/minecraft-datapack/docs/README.md) | 仕様索引と対象バージョンの選択手順 |
 | [`skills/minecraft-datapack/docs/versions/README.md`](skills/minecraft-datapack/docs/versions/README.md) | 全正式リリースとdata pack formatの対応 |
+| [`skills/minecraft-datapack/docs/snapshots/README.md`](skills/minecraft-datapack/docs/snapshots/README.md) | 収録済み26.3スナップショットとdata pack formatの対応 |
 | [`skills/minecraft-datapack/docs/ai-authoring.md`](skills/minecraft-datapack/docs/ai-authoring.md) | 生成時の決定規則と報告契約 |
 | [`skills/minecraft-datapack/templates/datapack-project.json`](skills/minecraft-datapack/templates/datapack-project.json) | プロジェクト設定のひな形 |
 | [`skills/minecraft-datapack/tools/datapack_harness.py`](skills/minecraft-datapack/tools/datapack_harness.py) | プロファイル解決と段階的な検証 |
@@ -65,8 +66,8 @@ AIは利用中の環境を判別し、スキル一式を対応する領域へ配
 
 ## 対象範囲
 
-Java Editionの正式リリースを対象とします。Bedrock Edition、Modローダー固有仕様、リソースパックだけの仕様、正式リリースに残らなかったsnapshot固有仕様は対象外です。
+Java Editionの正式リリースと、明示的に収録した26.3スナップショットを対象とします。Bedrock Edition、Modローダー固有仕様、リソースパックだけの仕様、未収録の開発バージョンは対象外です。
 
 仕様の正本はMojangのリリースノートと対象バージョンの公式server JARです。Minecraft Wikiは境界と説明の照合に使用します。
 
-ライセンスは [`skills/minecraft-datapack/LICENSE`](skills/minecraft-datapack/LICENSE) を参照してください。
+ライセンスはリポジトリ直下の [`LICENSE`](LICENSE) を参照してください。スキル配布物には同じ正本を [`skills/minecraft-datapack/LICENSE`](skills/minecraft-datapack/LICENSE) として含めます。

@@ -1,6 +1,6 @@
 # 実行ハーネス
 
-`tools/datapack_harness.py` は、正式リリースプロファイルの解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。このCLIを使用する場合だけPython 3.10以降が必要で、追加のPython packageは使用しません。
+`tools/datapack_harness.py` は、正式リリースと収録済みスナップショットのプロファイル解決、公式server JARの取得とSHA-1検証、data generator、pack静的検査、server起動・reload検査を実行します。このCLIを使用する場合だけPython 3.10以降が必要で、追加のPython packageは使用しません。
 
 MinecraftのBrigadierとcodecを再実装しません。静的に確定できない項目は警告します。server検査を行うかはproject設定の要求levelと利用者の判断で決めます。
 
@@ -9,6 +9,8 @@ MinecraftのBrigadierとcodecを再実装しません。静的に確定できな
 利用者repositoryの `datapack-project.json` に対象バージョン、namespace、pack root、要求検証levelを保存します。schemaとtemplateはrepository rootの `schemas/`、`templates/` にあります。
 
 必須fieldは `schema_version`、`target_version`、`namespace`、`pack_root`、`validation_level` です。対応範囲は省略すると対象バージョンだけ、editionはJava、experimentalは無効、server typeはvanillaになります。cacheは `.cache/minecraft`、reportは `build/minecraft/<target_version>/generated` を使います。配布元のversion/source/commitをprojectにも残す場合は、任意の `harness` objectを追加できます。導入済みのバージョンの正本は `VERSION` です。
+
+収録済みスナップショットを `target_version` にする場合は、意図的な実験利用を示すため `experimental_features: true` が必須です。
 
 ```bash
 python3 <harness-root>/tools/datapack_harness.py \
@@ -32,7 +34,7 @@ python3 tools/datapack_harness.py profiles
 
 検査内容:
 
-- 全50バージョンの必須front matter
+- 全50正式リリースと収録済みスナップショットの必須front matter
 - `compatibility` の基本クラス
 - `compatibility_tags` の定義済み値
 - filenameとversionの一致
@@ -59,7 +61,7 @@ JSON出力:
 - command/registry/vanilla dataの正本path
 - server検査に必要なJava major
 
-versionは完全一致です。一覧にないsnapshot、pre-release、Bedrock Edition、近似semverを受け付けません。
+versionは完全一致です。[`snapshots/README.md`](snapshots/README.md)にあるID以外のsnapshot、pre-release、Bedrock Edition、近似semverを受け付けません。
 
 `rule_history` は変更理由を追跡するための参考情報です。過去バージョンの禁止規則を対象バージョンへ累積適用しません。`json_parameter_history`はバージョン別プロファイルの差分を時系列で提示しますが、対象バージョンで使用可能なcommand、registry、vanilla resourceは自然言語だけで合成せず、対象バージョンのreport/dataで決定します。
 
@@ -73,7 +75,7 @@ python3 tools/datapack_harness.py fetch 1.20.5 \
 処理:
 
 1. 公式version manifest v2を取得
-2. `id`完全一致かつ `type: release` を1件選択
+2. `id`完全一致かつ正式リリースでは`type: release`、スナップショットでは`type: snapshot`を1件選択
 3. version metadataからserver URLとSHA-1を取得
 4. JARをdownload
 5. local JARのSHA-1を検証
@@ -97,11 +99,11 @@ python3 tools/datapack_harness.py reports 1.20.5 \
 
 data generatorは自動削除される一時working directoryで実行します。bundlerが展開する `libraries/`、`versions/`、`logs/` はリポジトリへ残りません。`--output` は起動時のdirectoryを基準に絶対pathへ解決します。
 
-生成成功時にはoutput rootへ `.datapack-harness-report.json` を保存し、正式リリースIDと検証済みserver JARのSHA-1を記録します。`json-catalog`はこのprovenanceを必須とし、CLIのversionと一致しないreportを拒否します。
+生成成功時にはoutput rootへ `.datapack-harness-report.json` を保存し、対象IDと検証済みserver JARのSHA-1を記録します。`json-catalog`はこのprovenanceを必須とし、CLIのversionと一致しないreportを拒否します。
 
 必要Java major:
 
-| 正式リリース | Java |
+| 対象バージョン | Java |
 |---|---:|
 | 1.13〜1.16.5 | 8 |
 | 1.17〜1.17.1 | 16 |
@@ -213,7 +215,8 @@ release前には、EULAへ同意できる隔離環境でバージョンごとに
 | 1.18 | 17 | bundler起動 |
 | 1.20.5 | 21 | item component |
 | 1.21.9 | 21 | minor pack format metadata |
-| 26.2 | 25 | 最新対応バージョン |
+| 26.2 | 25 | 最新正式リリース |
+| 26.3-snapshot-6 | 25 | 最新収録スナップショット |
 
 各バージョンで `--expect-log` を指定し、成功logを保存します。実行していないバージョンについて「server-test互換性確認済み」と記録しません。
 
@@ -223,7 +226,7 @@ release前には、EULAへ同意できる隔離環境でバージョンごとに
 |---|---|
 | `profiles` | バージョンのmetadata・継承・互換性schemaの整合 |
 | `resolve` | 対象バージョンと適用規則の決定 |
-| `fetch` | 公式release JARとSHA-1 |
+| `fetch` | 公式release／snapshot JARとSHA-1 |
 | `reports` | 対象バージョンのcommand graph・registry・vanilla data |
 | `validate-pack` | pack構造と一部参照の静的検査 |
 | `server-test` | exact serverでpack有効化、reload完了、既知load error不在を検査 |

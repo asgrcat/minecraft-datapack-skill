@@ -4,9 +4,9 @@ Markdown の要約だけでコマンドや worldgen codec の全分岐を推測�
 
 以下の取得、SHA-1、data generator、静的検査、server reloadは `tools/datapack_harness.py` から実行できます。CLIと保証範囲は [`harness.md`](harness.md) を参照してください。
 
-## 1. 正式リリース server JAR を特定する
+## 1. 対象バージョンの server JAR を特定する
 
-公式 version manifest から、完全一致する release ID を選びます。
+公式 version manifest から、完全一致するIDと対象channelを選びます。次は正式リリースの例です。収録済みスナップショットでは `type == "snapshot"` を使います。
 
 ```bash
 TARGET_VERSION='1.20.5'
@@ -24,7 +24,7 @@ curl --fail --silent --show-error "$VERSION_META_URL" |
 
 - `TARGET_VERSION` を部分一致させない
 - URL と同時に SHA-1 を得て、download 後に検証する
-- manifest にないバージョン名や snapshot を、最寄りの正式リリースとして代用しない
+- manifest にないバージョン名や未収録snapshotを、最寄りの正式リリース／収録済みsnapshotとして代用しない
 
 ## 2. data generator
 
@@ -68,7 +68,7 @@ python3 tools/datapack_harness.py json-catalog "$TARGET_VERSION" \
 ```
 
 registry ID一覧とvanilla観測fieldの保証範囲は[`json-parameters/README.md`](json-parameters/README.md)を参照してください。カタログの`registry_sources`が`unknown`、または`source.datapack`が`null`の場合は、空配列を機能非対応の証拠にしません。
-catalog作成時は`reports` commandが生成した`.datapack-harness-report.json`を照合し、指定versionとreportの正式リリースが異なる場合は失敗します。
+catalog作成時は`reports` commandが生成した`.datapack-harness-report.json`を照合し、指定versionとreportの対象IDが異なる場合は失敗します。
 
 `registries.json`にIDが存在しても、data packからそのregistryへ新しいelement JSONを追加できるとは限りません。`datapack.json`の`elements`、`tags`、`stable`も確認します。`elements: false`で`tags: true`のregistryは、既存entryのtagを作れても新しいentryを定義できません。
 

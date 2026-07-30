@@ -31,9 +31,9 @@ class ProfileTests(unittest.TestCase):
         profiles = HARNESS.load_profiles()
         self.assertEqual([], HARNESS.validate_all_profiles(profiles))
         order = HARNESS.ordered_versions(profiles)
-        self.assertEqual(50, len(order))
+        self.assertEqual(56, len(order))
         self.assertEqual("1.13", order[0])
-        self.assertEqual("26.2", order[-1])
+        self.assertEqual("26.3-snapshot-6", order[-1])
 
     def test_compatibility_is_normalized(self) -> None:
         profiles = HARNESS.load_profiles()
@@ -49,6 +49,20 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual("1.13", chain[0]["version"])
         self.assertEqual("26.2", chain[-1]["version"])
         self.assertEqual(50, len(chain))
+
+    def test_snapshot_chain_and_channel_are_explicit(self) -> None:
+        profiles = HARNESS.load_profiles()
+        chain = HARNESS.resolve_chain("26.3-snapshot-6", profiles)
+        self.assertEqual(56, len(chain))
+        self.assertEqual("26.2", chain[-7]["version"])
+        self.assertEqual("26.3-snapshot-6", chain[-1]["version"])
+        payload = HARNESS.resolved_profile_payload(
+            "26.3-snapshot-6",
+            profiles,
+        )
+        self.assertEqual("snapshot", payload["profile"]["channel"])
+        self.assertEqual("26.3", payload["profile"]["snapshot_for"])
+        self.assertEqual("113.0", payload["profile"]["data_pack_format"])
 
     def test_resolve_separates_active_rules_from_history(self) -> None:
         profiles = HARNESS.load_profiles()
@@ -555,6 +569,59 @@ class FetchTests(unittest.TestCase):
             self.assertEqual(payload, jar.read_bytes())
             self.assertEqual(digest, HARNESS.sha1_file(jar))
             self.assertEqual("1.20.5", fetched["id"])
+
+    def test_fetch_uses_exact_snapshot_channel(self) -> None:
+        payload = b"snapshot server jar fixture"
+        digest = hashlib.sha1(payload).hexdigest()
+        manifest = {
+            "versions": [
+                {
+                    "id": "26.3-snapshot-6",
+                    "type": "release",
+                    "url": "wrong",
+                },
+                {
+                    "id": "26.3-snapshot-6",
+                    "type": "snapshot",
+                    "url": "metadata",
+                },
+            ]
+        }
+        metadata = {
+            "id": "26.3-snapshot-6",
+            "downloads": {
+                "server": {
+                    "url": "server",
+                    "sha1": digest,
+                }
+            },
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            cache = Path(temporary)
+
+            def fake_download(_url: str, destination: Path) -> None:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(payload)
+
+            with (
+                mock.patch.object(
+                    HARNESS,
+                    "fetch_json",
+                    side_effect=[manifest, metadata],
+                ),
+                mock.patch.object(
+                    HARNESS,
+                    "download_file",
+                    side_effect=fake_download,
+                ),
+            ):
+                jar, fetched = HARNESS.fetch_release(
+                    "26.3-snapshot-6",
+                    cache,
+                )
+            self.assertEqual(payload, jar.read_bytes())
+            self.assertEqual(digest, HARNESS.sha1_file(jar))
+            self.assertEqual("26.3-snapshot-6", fetched["id"])
 
 
 class ReportTests(unittest.TestCase):

@@ -191,6 +191,20 @@ damageの原因、direct entity、vehicle/riderのどれをscoreへ帰属させ�
 
 unknown entity predicate keyを拒否する26.2の厳格化を適用し、26.1.x形式の `type` fieldを混在させません。
 
+### 26.3スナップショット: Dappled Forestとcamp
+
+26.3 Snapshot 1〜6ではDappled Forest、Poplar、Shelf Mushroom、Red Shrub、Abandoned Camp、Cushion、Straw Bedが開発中です。
+
+活用面:
+
+- Abandoned Campのstructure tagとlootを探索questへ接続
+- Dappled Forest／Poplarのworldgenを未生成chunkの探索目標にする
+- Cushionの着席をcampの演出へ使い、進行状態はscoreboard／storageで別管理する
+- Straw Bedをspawn pointを変えない一時休息として利用する
+- data-driven brewing recipeとcamp lootをprogressionへつなぐ
+
+スナップショットのentity／block interactionを正式仕様として固定せず、専用eventがない挙動を推測したadvancement triggerで実装しません。worldgenは既存worldで検証せず、対象スナップショットごとの実験worldと未生成chunkを使います。
+
 ## コンテンツカード
 
 今後、バージョンプロファイルへgameplay要素を追記するときは、次の形式を使います。
@@ -281,5 +295,8 @@ ID追加だけでは、AI、drop、interaction、block state、tag membershipの
 - [Mojang: Java Edition 1.21.11](https://www.minecraft.net/en-us/article/minecraft-java-edition-1-21-11)
 - [Mojang: Java Edition 26.1](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-1)
 - [Mojang: Java Edition 26.2](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-2)
+- [Mojang: Minecraft 26.3 Snapshot 1](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-1)
+- [Mojang: Minecraft 26.3 Snapshot 3](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-3)
+- [Mojang: Minecraft 26.3 Snapshot 6](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-6)
 - [Minecraft Wiki: Data pack](https://minecraft.wiki/w/Data_pack)
 - [Minecraft Wiki: Java Edition version history](https://minecraft.wiki/w/Java_Edition_version_history)
