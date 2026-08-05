@@ -248,7 +248,7 @@ class ProjectConfigurationTests(unittest.TestCase):
             )
 
         self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertIn("validated 56 profiles", completed.stdout)
+        self.assertIn("validated 57 profiles", completed.stdout)
 
     def test_validate_project_uses_configured_pack_root(self) -> None:
         config = template_config()

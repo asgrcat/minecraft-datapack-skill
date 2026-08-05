@@ -216,7 +216,7 @@ release前には、EULAへ同意できる隔離環境でバージョンごとに
 | 1.20.5 | 21 | item component |
 | 1.21.9 | 21 | minor pack format metadata |
 | 26.2 | 25 | 最新正式リリース |
-| 26.3-snapshot-6 | 25 | 最新収録スナップショット |
+| 26.3-snapshot-7 | 25 | 最新収録スナップショット |
 
 各バージョンで `--expect-log` を指定し、成功logを保存します。実行していないバージョンについて「server-test互換性確認済み」と記録しません。
 

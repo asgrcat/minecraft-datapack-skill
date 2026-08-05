@@ -161,7 +161,7 @@ resource locationはどちらも `example:init` ですが、物理pathが異な�
 
 ### 26.3スナップショット
 
-26.3の開発バージョンは `26.3-snapshot-1`〜`26.3-snapshot-6` を完全一致で選びます。各スナップショットでdata pack formatと破壊的変更が進むため、「26.3向け」や「最新snapshot向け」という曖昧な対象では生成しません。
+26.3の開発バージョンは `26.3-snapshot-1`〜`26.3-snapshot-7` を完全一致で選びます。各スナップショットでdata pack formatと破壊的変更が進むため、「26.3向け」や「最新snapshot向け」という曖昧な対象では生成しません。
 
 スナップショット向け生成では、隔離した実験world、対象JARのreport、対象formatへ固定したmetadataを必須にし、正式リリース互換とは報告しません。
 

@@ -193,7 +193,7 @@ unknown entity predicate keyを拒否する26.2の厳格化を適用し、26.1.x
 
 ### 26.3スナップショット: Dappled Forestとcamp
 
-26.3 Snapshot 1〜6ではDappled Forest、Poplar、Shelf Mushroom、Red Shrub、Abandoned Camp、Cushion、Straw Bedが開発中です。
+26.3 Snapshot 1〜7ではDappled Forest、Poplar、Shelf Mushroom、Red Shrub、Abandoned Camp、Cushion、Straw Bed、Concrete Stairs／Slabs、追加Explorer Mapが開発中です。
 
 活用面:
 
@@ -202,6 +202,8 @@ unknown entity predicate keyを拒否する26.2の厳格化を適用し、26.1.x
 - Cushionの着席をcampの演出へ使い、進行状態はscoreboard／storageで別管理する
 - Straw Bedをspawn pointを変えない一時休息として利用する
 - data-driven brewing recipeとcamp lootをprogressionへつなぐ
+- Abandoned Campのexplorer mapを次の探索目標へつなぎ、map生成失敗時は`minecraft:map_id`なしのitemを除外する
+- Concrete Stairs／Slabsのblock／item tagを建築素材の選択や判定へ使う
 
 スナップショットのentity／block interactionを正式仕様として固定せず、専用eventがない挙動を推測したadvancement triggerで実装しません。worldgenは既存worldで検証せず、対象スナップショットごとの実験worldと未生成chunkを使います。
 
@@ -298,5 +300,6 @@ ID追加だけでは、AI、drop、interaction、block state、tag membershipの
 - [Mojang: Minecraft 26.3 Snapshot 1](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-1)
 - [Mojang: Minecraft 26.3 Snapshot 3](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-3)
 - [Mojang: Minecraft 26.3 Snapshot 6](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-6)
+- [Mojang: Minecraft 26.3 Snapshot 7](https://www.minecraft.net/en-us/article/minecraft-26-3-snapshot-7)
 - [Minecraft Wiki: Data pack](https://minecraft.wiki/w/Data_pack)
 - [Minecraft Wiki: Java Edition version history](https://minecraft.wiki/w/Java_Edition_version_history)

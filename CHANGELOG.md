@@ -2,6 +2,12 @@
 
 このファイルは、スキルと付属ハーネスの利用者へ影響する変更を記録します。
 
+## 0.2.3
+
+- Java Edition `26.3-snapshot-7`プロファイルとdata pack format 115.0を追加
+- block state field、item animation component、exploration map loot function、density function精度の変更を収録
+- Snapshot 7を最新収録スナップショットとして仕様索引、ハーネス、テストへ反映
+
 ## 0.2.2
 
 - Java Edition `26.3-snapshot-1`〜`26.3-snapshot-6`のプロファイルとdata pack format 108.0〜113.0を追加
