@@ -296,6 +296,7 @@ entity tag は resource location ではなく文字列で、保存 NBT の `Tags
 | 26.3-snapshot-5 | command tree固有差分なし |
 | 26.3-snapshot-6 | `/publish`から`gamemode`引数を削除 |
 | 26.3-snapshot-7 | `/swing`へ`whack`／`stab` animationとdurationを追加。playerのattack strengthをresetしないよう変更 |
+| 26.3-snapshot-8 | command tree固有差分なし（Snapshot 7と生成済み`commands.json`が同一） |
 
 スナップショットのcommandは開発中です。正式リリース表の「現行コマンド」へ合成せず、対象IDの`commands.json`を正本にします。
 

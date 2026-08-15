@@ -2,6 +2,13 @@
 
 このファイルは、スキルと付属ハーネスの利用者へ影響する変更を記録します。
 
+## 0.2.4
+
+- Java Edition `26.3-snapshot-8`プロファイルとdata pack format 116.0を追加
+- desert wellのデータ駆動化、placement modifier／block predicate追加、Explorer Map ID renameを収録
+- 公式server JARのSnapshot 7／8比較を基に、command tree不変とvanilla JSON差分を記録
+- Snapshot 8を最新収録スナップショットとして仕様索引、ハーネス、テストへ反映
+
 ## 0.2.3
 
 - Java Edition `26.3-snapshot-7`プロファイルとdata pack format 115.0を追加
