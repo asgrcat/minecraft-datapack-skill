@@ -2,6 +2,16 @@
 
 このファイルは、スキルと付属ハーネスの利用者へ影響する変更を記録します。
 
+## 2026.08.1
+
+- 最初のGitHub Releaseとして、バージョン表記をCalVerの`YYYY.MM.N`へ移行
+- Claude Code、Codex、Cursorで共有できる`minecraft-datapack` Agent Skillを配布
+- Java Edition 1.13〜26.2の正式リリース50件と、`26.3-snapshot-1`〜`26.3-snapshot-8`のプロファイルを収録
+- data pack format 4〜116.0のバージョン境界、コマンド、JSON、SNBT、ディレクトリ構造、互換性資料を収録
+- 対象バージョンの完全一致解決、公式server JARの取得とSHA-1検証、report生成、pack静的検査、任意のserver reload検査を行うハーネスを同梱
+- project設定、schema、導入template、consumer CI template、スキル内ライセンスを同梱
+- 旧バージョン`0.1.0`〜`0.2.4`の開発内容を統合
+
 ## 0.2.4
 
 - Java Edition `26.3-snapshot-8`プロファイルとdata pack format 116.0を追加

@@ -22,6 +22,10 @@ The AI can identify the active environment and place the complete skill in its s
 
 The AI may also select the skill automatically when a request matches its description.
 
+## Versioning
+
+Releases use the `YYYY.MM.N` CalVer scheme. `N` is the release sequence within a month and resets to `1` when the month changes. [`skills/minecraft-datapack/VERSION`](skills/minecraft-datapack/VERSION) is the authoritative skill version, and Git tags add a `v` prefix (for example, `v2026.08.1`).
+
 ## Example requests
 
 > Build a Java Edition 1.21.5 data pack that records a score for each participant. Use the `event` namespace and complete static validation.
