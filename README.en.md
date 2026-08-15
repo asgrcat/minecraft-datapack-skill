@@ -10,7 +10,7 @@ Claude Code, Codex, and Cursor use the same [`SKILL.md`](skills/minecraft-datapa
 
 Give your AI the repository URL and ask it to add the skill:
 
-> Add `skills/minecraft-datapack` from this repository as an Agent Skill: https://github.com/asgrcat/mc-datapack-harness
+> Add `skills/minecraft-datapack` from this repository as an Agent Skill: https://github.com/asgrcat/minecraft-datapack-skill
 
 The AI can identify the active environment and place the complete skill in its supported skill location. After it is added, invoke it explicitly with:
 

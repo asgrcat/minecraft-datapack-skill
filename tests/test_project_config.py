@@ -112,7 +112,7 @@ class ProjectConfigurationTests(unittest.TestCase):
         config = template_config()
         config["harness"] = {
             "version": HARNESS.HARNESS_VERSION,
-            "source": "https://github.com/asgrcat/mc-datapack-harness",
+            "source": "https://github.com/asgrcat/minecraft-datapack-skill",
             "commit": installed_or_archive_commit(),
         }
         with tempfile.TemporaryDirectory() as temporary:

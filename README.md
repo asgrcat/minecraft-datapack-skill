@@ -10,7 +10,7 @@ Claude Code、Codex、Cursor で共通の [`SKILL.md`](skills/minecraft-datapack
 
 利用中のAIへ、次のようにリポジトリURLと追加したい旨を伝えてください。
 
-> このリポジトリの `skills/minecraft-datapack` を Agent Skill として追加してください: https://github.com/asgrcat/mc-datapack-harness
+> このリポジトリの `skills/minecraft-datapack` を Agent Skill として追加してください: https://github.com/asgrcat/minecraft-datapack-skill
 
 AIは利用中の環境を判別し、スキル一式を対応する領域へ配置します。追加後は次の名前で明示的に呼び出せます。
 
